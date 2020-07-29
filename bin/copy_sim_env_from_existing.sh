@@ -16,6 +16,8 @@ else
   CHECK=0
 fi
 
+echo "Copying from $CONFIG_OLD $CASE_OLD to $CONFIG_NEW $CASE_NEW"
+
 if [ ! -d run/nemo_${CONFIG_OLD}_${CASE_OLD} ]; then
   echo "~!@#%^&* ERROR : run/nemo_${CONFIG_OLD}_${CASE_OLD} does not exist"
   echo " "
@@ -28,7 +30,7 @@ if [ ! -d output/nemo_${CONFIG_OLD}_${CASE_OLD} ]; then
   echo " "
 fi
 
-if [ ! -d run/nemo_${CONFIG_NEW}_${CASE_NEW} ]; then
+if [ -d run/nemo_${CONFIG_NEW}_${CASE_NEW} ]; then
   echo "~!@#%^&* ERROR : run/nemo_${CONFIG_NEW}_${CASE_NEW} does exist"
   echo "             >>>>>> check new config and case names or remove existing directory"
   echo " "
@@ -51,54 +53,34 @@ fi
 
 mkdir run/nemo_${CONFIG_NEW}_${CASE_NEW}
 
-for file in 
-calculate_end_date.f90 \\
-calculate_end_date_month.f90 \\
-compress_nemo_GENERIC.sh \\
-domain_def.xml \\
-field_def.xml \\
-iodef_daily_monthly.xml \\
-iodef_daily.xml \\
-iodef.xml \\
-iodef_monthly_daily.xml \\
-namelist_ice_nemo_GENERIC \\
-namelist_nemo_GENERIC \\
-rebuild.sh \\
-run_nemo.sh
+cp -p run/nemo_${CONFIG_OLD}_${CASE_OLD}/*.f90 run/nemo_${CONFIG_NEW}_${CASE_NEW}/.
+cp -p run/nemo_${CONFIG_OLD}_${CASE_OLD}/*.xml run/nemo_${CONFIG_NEW}_${CASE_NEW}/.
+cp -p run/nemo_${CONFIG_OLD}_${CASE_OLD}/*.sh run/nemo_${CONFIG_NEW}_${CASE_NEW}/.
+rm -f run/nemo_${CONFIG_NEW}_${CASE_NEW}/compress_nemo_[0-9]*sh
+cp -p run/nemo_${CONFIG_OLD}_${CASE_OLD}/*GENERIC* run/nemo_${CONFIG_NEW}_${CASE_NEW}/.
+
+if [ ! ${CONFIG_OLD} == ${CONFIG_NEW} ]; then
+  mv run/nemo_${CONFIG_NEW}_${CASE_NEW}/namelist_nemo_GENERIC_${CONFIG_OLD} run/nemo_${CONFIG_NEW}_${CASE_NEW}/namelist_nemo_GENERIC_${CONFIG_NEW}
+  mv run/nemo_${CONFIG_NEW}_${CASE_NEW}/namelist_ice_nemo_GENERIC_${CONFIG_OLD} run/nemo_${CONFIG_NEW}_${CASE_NEW}/namelist_ice_nemo_GENERIC_${CONFIG_NEW}
+fi
+
+for file in run/nemo_${CONFIG_OLD}_${CASE_OLD}/run_nemo*sh
 do
-
-  if [ -f ${TEMP_NEMO_DIR}/template_run/${file}_${MY_CONFIG} ]; then
-    if [ $file == 'run_nemo.sh' ]; then
-      sed -e "s#<config>#${MY_CONFIG}#g ; s#<case>#${MY_CASE}#g" ${TEMP_NEMO_DIR}/template_run/${file}_${MY_CONFIG} > run/nemo_${CONFIG}_${CASE}/${file}
-    else
-      cp -p ${TEMP_NEMO_DIR}/template_run/${file}_${MY_CONFIG} run/nemo_${CONFIG}_${CASE}
-    fi
-  else
-    if [ $file == 'run_nemo.sh' ]; then
-      sed -e "s#<config>#${MY_CONFIG}#g ; s#<case>#${MY_CASE}#g" ${TEMP_NEMO_DIR}/template_run/${file} > run/nemo_${CONFIG}_${CASE}/${file}
-    else
-      cp -p ${TEMP_NEMO_DIR}/template_run/${file} run/nemo_${CONFIG}_${CASE}/.
-    fi
-  fi
-
-  mv run/nemo_${CONFIG}_${CASE}/namelist_nemo_GENERIC run/nemo_${CONFIG}_${CASE}/namelist_nemo_GENERIC_${MY_CONFIG}
-  mv run/nemo_${CONFIG}_${CASE}/namelist_ice_nemo_GENERIC run/nemo_${CONFIG}_${CASE}/namelist_ice_nemo_GENERIC_${MY_CONFIG}
-
+  file2="run/nemo_${CONFIG_NEW}_${CASE_NEW}/`basename $file`"
+  sed -e "s#${CONFIG_OLD}#${CONFIG_NEW}#g ; s#${CASE_OLD}#${CASE_NEW}#g" $file > $file2
+  chmod +x $file2
 done
 
 ## 2- Prepare postprocessing scripts
 
-mkdir output/nemo_${CONFIG}_${CASE}
+mkdir output/nemo_${CONFIG_NEW}_${CASE_NEW}
 
-if [ -f ${TEMP_NEMO_DIR}/template_post/postprocess_nemo_with_monthly_io.sh_${CONFIG} ]; then
-  sed -e "s#<config>#${MY_CONFIG}#g ; s#<case>#${MY_CASE}#g" > ${TEMP_NEMO_DIR}/template_post/postprocess_nemo_with_monthly_io.sh_${CONFIG} output/nemo_${CONFIG}_${CASE}/postprocess_nemo_with_monthly_io.sh
-else
-  sed -e "s#<config>#${MY_CONFIG}#g ; s#<case>#${MY_CASE}#g" > ${TEMP_NEMO_DIR}/template_post/postprocess_nemo_with_monthly_io.sh output/nemo_${CONFIG}_${CASE}/postprocess_nemo_with_monthly_io.sh
-fi
- 
-if [ -f ${TEMP_NEMO_DIR}/template_post/postprocess_nemo.sh_${CONFIG} ]; then
-  sed -e "s#<config>#${MY_CONFIG}#g ; s#<case>#${MY_CASE}#g" > ${TEMP_NEMO_DIR}/template_post/postprocess_nemo.sh_${CONFIG} output/nemo_${CONFIG}_${CASE}/postprocess_nemo.sh
-else
-  sed -e "s#<config>#${MY_CONFIG}#g ; s#<case>#${MY_CASE}#g" > ${TEMP_NEMO_DIR}/template_post/postprocess_nemo.sh output/nemo_${CONFIG}_${CASE}/postprocess_nemo.sh
-fi
- 
+cp -p output/nemo_${CONFIG_OLD}_${CASE_OLD}/*.f90 output/nemo_${CONFIG_NEW}_${CASE_NEW}/.
+
+for file in output/nemo_${CONFIG_OLD}_${CASE_OLD}/postpro*.sh
+do
+  file2="output/nemo_${CONFIG_NEW}_${CASE_NEW}/`basename $file`"
+  sed -e "s#${CONFIG_OLD}#${CONFIG_NEW}#g ; s#${CASE_OLD}#${CASE_NEW}#g" $file > $file2
+  chmod +x $file2
+done
+
