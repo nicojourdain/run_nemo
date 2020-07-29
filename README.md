@@ -83,4 +83,9 @@ After each submission, outputs are temporarilly stored in ``` $WORKDIR/run/nemo_
 
 ## Postprocess the outputs
 
+```bash
+cd $WORKDIR/output/nemo_${NEW_CONFIG}_${NEW_CASE}
+vi postprocess_nemo_with_monthly_io.sh # edit (if you used BY_MONTH=1)
+sbatch postprocess_nemo_with_monthly_io.sh
+```
 
