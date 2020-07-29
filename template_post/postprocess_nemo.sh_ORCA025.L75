@@ -1,0 +1,287 @@
+#!/bin/bash
+#SBATCH -C HSW24
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --threads-per-core=1
+#SBATCH -J post_<config>_<case>
+#SBATCH -e post.e%j
+#SBATCH -o post.o%j
+#SBATCH --mem=64GB
+#SBATCH --time=19:59:00
+###SBATCH --time=06:59:00
+
+# takes less than 5h per year
+
+date
+
+##################################################################
+# USER'S CHOICES :
+
+CONFIG="ORCA025.L75"
+CASE="<case>"
+
+YEARi=2016
+YEARf=2018
+
+###################################################################
+
+WORKDIR=`pwd`
+
+CHECK=`basename $WORKDIR`
+
+if [ ! ${CHECK} == "nemo_${CONFIG}_${CASE}" ]; then
+  echo "~!@#$%^&* Check CONFIG & CASE names !! >>>>> STOP !!"
+  exit
+fi
+
+for YEAR in $(seq ${YEARi} ${YEARf})
+do
+
+if [ $YEAR -lt 10 ]; then
+  YEAR="0${YEAR}"
+fi
+if [ $YEAR -lt 100 ]; then
+  YEAR="0${YEAR}"
+fi
+if [ $YEAR -lt 1000 ]; then
+  YEAR="0${YEAR}"
+fi
+
+echo " "
+echo "*********************************************************************************"
+echo "*********************************************************************************"
+date
+echo "$CONFIG $CASE"
+echo "$YEAR :"
+echo " "
+
+if [ ! -d ${WORKDIR}/MONTHLY ]; then
+  mkdir ${WORKDIR}/MONTHLY
+fi
+
+cd ${WORKDIR}/$YEAR
+
+tar cvf diag_simu_${YEAR}.tar ocean.output.* namelist* app.copy 
+if [ -f diag_simu_${YEAR}.tar ]; then
+  rm -f ocean.output.* namelist* app.copy
+else
+  echo "WARNING: Something has gone wrong with creation of diag_simu_${YEAR}.tar"
+  echo "  >> continue anyway..."
+fi
+
+for FREQ in 1d 5d
+do
+
+for GRID in icb flxT icemod gridT gridU gridV gridW
+do
+
+echo " "
+echo "========================="
+date
+echo "$GRID $FREQ :"
+echo " "
+
+COUNT=0
+NFILES=`ls -1 ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}????-${YEAR}????.nc |wc -l`
+
+if [ $NFILES -eq 0 ]; then
+
+  echo "**************************"
+  echo "* No file to postprocess *"
+  echo "**************************"
+
+else
+
+# Check time steps consistency:
+for file in ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}????-${YEAR}????.nc
+do
+  NSTEPS=`ncdump -h $file |grep UNLIMITED |awk '{print $6}' |sed -e "s/(//g"`
+  echo "${NSTEPS} time steps in $file"
+  COUNT=`expr $COUNT + $NSTEPS`
+done
+if [ $FREQ == '1d' ]; then
+  if [ $COUNT -ne 365 ] && [ $COUNT -ne 366 ] && [ $COUNT -ne 730 ] && [ $COUNT -ne 732 ]; then
+    echo "~!@#$%^&* THE TOTAL NUMBER OF TIME STEPS FOR ${FREQ}_${GRID} AND YEAR ${YEAR} IS NOT CORRECT >>>>>> STOP !!"
+    exit
+  fi
+  ## manage half processed files (in case previous postprocessing stopped):
+  if [ $COUNT -eq 730 ] || [ $COUNT -eq 732 ]; then
+    echo "Rebuilding ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}0101-${YEAR}1231.nc ....."
+    rm -f ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}0101-${YEAR}1231.nc
+  fi
+elif [ $FREQ == '5d' ]; then
+  if [ $COUNT -ne 72 ] && [ $COUNT -gt 73 ]  && [ $COUNT -gt 74 ]  && [ $COUNT -gt 437 ]  && [ $COUNT -gt 438 ]  && [ $COUNT -gt 439 ] && [ $COUNT -gt 440 ]; then
+    echo "~!@#$%^&* THE TOTAL NUMBER OF TIME STEPS FOR ${FREQ}_${GRID} AND YEAR ${YEAR} IS NOT CORRECT >>>>>> STOP !!"
+    exit
+  fi
+  ## manage half processed files (in case previous postprocessing stopped):
+  if [ $COUNT -eq 437 ] || [ $COUNT -eq 438 ] || [ $COUNT -eq 439 ] || [ $COUNT -eq 440 ]; then
+    echo "Rebuilding ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}0101-${YEAR}1231.nc ....."
+    rm -f ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}0101-${YEAR}1231.nc
+  fi
+else
+  echo "~!@#$%^&* WRONG FREQUENCY !?!?!? stop"
+  exit
+fi
+
+if [ $FREQ == '1d' ]; then
+  if [ $COUNT == 365 ]; then
+    BIS=0
+  else
+    BIS=1
+  fi
+elif [ $FREQ == '5d' ]; then
+  BIS=0  # no leap year for the moment
+  #TMPBIS=`echo "$YEAR /4"|bc -l |cut -d '.' -f2 |sed -e "s/00000000000000000//g"`
+  #if [ $TMPBIS -eq 0 ];then
+  #  BIS=1
+  #else
+  #  BIS=0
+  #fi
+fi
+
+echo " "
+# Concatenation to yearly file if needed:
+if [ $NFILES -gt 1 ] && [ $FREQ == '1d' ]; then
+  rm -f tmpx_${GRID}_${YEAR}.nc
+  ncrcat -O ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}????-${YEAR}????.nc tmpx_${GRID}_${YEAR}.nc
+  if [ -f tmpx_${GRID}_${YEAR}.nc ]; then
+    rm -f ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}????-${YEAR}????.nc
+    mv tmpx_${GRID}_${YEAR}.nc ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}0101-${YEAR}1231.nc
+    echo "All files concatenated into ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}0101-${YEAR}1231.nc"
+  else
+    echo "~!@#$%^&* CONCATENATION OF ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}????-${YEAR}????.nc HAS FAILED >>>>> STOP !!"
+    exit
+  fi
+elif [ $NFILES -gt 1 ] && [ $FREQ == '5d' ]; then
+  rm -f xtmpx_${YEAR}????.nc tmpx_${GRID}_${YEAR}.nc
+  for file in ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}????-${YEAR}????.nc
+  do
+    DATE1=`echo $file | sed -e "s/${CONFIG}-${CASE}_${FREQ}_${GRID}_//g" | cut -d '-' -f1` 
+    DATE2=`echo $file | sed -e "s/${CONFIG}-${CASE}_${FREQ}_${GRID}_//g; s/.nc//g" | cut -d '-' -f2`
+    MONTH1=`echo $DATE1 | cut -c 5-6` 
+    DAY1=`echo $DATE1 | cut -c 7-8` 
+    MONTH2=`echo $DATE2 | cut -c 5-6` 
+    DAY2=`echo $DATE2 | cut -c 7-8`
+    if [ $MONTH1 -eq $MONTH2 ]; then
+      for XDAY in $(seq $DAY1 $DAY2)
+      do
+        if [ $XDAY -lt 10 ]; then
+          XDAY="0$XDAY"
+        fi
+        ln -s -v $file xtmpx_${YEAR}${MONTH1}${XDAY}.nc
+      done
+    else
+      if [ $MONTH1 -eq 4 ] || [ $MONTH1 -eq 6 ] || [ $MONTH1 -eq 9 ] || [ $MONTH1 -eq 11 ]; then
+        NDAYS=30
+      elif [ $MONTH1 -eq 2 ]; then
+        NDAYS=`expr 28 + $BIS`
+      else
+        NDAYS=31
+      fi
+      for XDAY in $(seq $DAY1 $NDAYS)
+      do
+        if [ $XDAY -lt 10 ]; then
+          XDAY="0$XDAY"
+        fi
+        ln -s -v $file xtmpx_${YEAR}${MONTH1}${XDAY}.nc
+      done
+      for XDAY in $(seq 1 $DAY2)
+      do
+        if [ $XDAY -lt 10 ]; then
+          XDAY="0$XDAY"
+        fi
+        ln -s -v $file xtmpx_${YEAR}${MONTH2}${XDAY}.nc
+      done
+    fi
+  done  
+  ncrcat -O xtmpx_${YEAR}????.nc tmpx_${GRID}_${YEAR}.nc
+  if [ -f tmpx_${GRID}_${YEAR}.nc ]; then
+    rm -f xtmpx_${YEAR}????.nc
+    mv tmpx_${GRID}_${YEAR}.nc ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}0101-${YEAR}1231.nc
+    echo "All files concatenated into ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}0101-${YEAR}1231.nc"
+  else
+    echo "~!@#$%^&* CONCATENATION OF ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}????-${YEAR}????.nc HAS FAILED >>>>> STOP !!"
+    exit
+  fi
+else
+  echo "Output file is ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}0101-${YEAR}1231.nc => no need for concatenation."
+fi
+
+echo " "
+# Extraction of monthly means:
+DAYi=1
+for MONTH in $(seq 1 12)
+do
+  if [ $MONTH -lt 10 ]; then
+    MONTH="0${MONTH}"
+  fi
+  if [ $MONTH -eq 4 ] || [ $MONTH -eq 6 ] || [ $MONTH -eq 9 ] || [ $MONTH -eq 11 ]; then
+    NDAYS=30
+  elif [ $MONTH -eq 2 ]; then
+    NDAYS=`expr 28 + $BIS`
+  else
+    NDAYS=31
+  fi
+  DAYf=`echo "${DAYi} + ${NDAYS} - 1" |bc`
+  echo "$NDAYS days (${DAYi}:${DAYf}) for month ${MONTH}"
+  ncks -O -F -d time_counter,${DAYi},${DAYf} ${CONFIG}-${CASE}_${FREQ}_${GRID}_${YEAR}0101-${YEAR}1231.nc cyp_${YEAR}_${GRID}.nc
+  ncra -O -F -d time_counter,1,${NDAYS} cyp_${YEAR}_${GRID}.nc ../MONTHLY/${CONFIG}-${CASE}_${FREQ}_${YEAR}${MONTH}_${GRID}.nc
+  rm -f cyp_${YEAR}_${GRID}.nc
+  DAYi=`expr $DAYf + 1`
+done ## MONTH
+
+if [ $FREQ == '1d' ]; then
+  if [ $GRID == 'icemod' ]; then
+    GRID2="${GRID}b"
+  elif [ $GRID == 'gridT' ] || [ $GRID == 'gridU' ] || [ $GRID == 'gridV' ]; then
+    GRID2="${GRID}srf"
+  else
+    GRID2=${GRID}
+  fi
+else
+  GRID2=${GRID}
+fi
+
+ncrcat -O ../MONTHLY/${CONFIG}-${CASE}_${FREQ}_${YEAR}??_${GRID}.nc ../MONTHLY/${CONFIG}-${CASE}_monthly_${YEAR}_${GRID2}.nc
+if [ -f ../MONTHLY/${CONFIG}-${CASE}_monthly_${YEAR}_${GRID2}.nc ]; then
+  rm -f ../MONTHLY/${CONFIG}-${CASE}_${FREQ}_${YEAR}??_${GRID}.nc
+  echo " "
+  echo "${CONFIG}-${CASE}_monthly_${YEAR}_${GRID2}.nc  has been created"
+else
+  echo "~!@#$%^&* Concatenation of monthly file MONTHLY/${CONFIG}-${CASE}_monthly_${YEAR}_${GRID2}.nc has failed >>>>> STOP !!"
+  exit
+fi
+
+fi ## if [ $NFILES -eq 0 ]
+
+done ## GRID
+done ## FREQ
+
+cd ${WORKDIR}
+
+# Keep only one file for icemod (with variables computed form 1d when possible) :
+if [ -f MONTHLY/${CONFIG}-${CASE}_monthly_${YEAR}_icemod.nc ] && [ -f MONTHLY/${CONFIG}-${CASE}_monthly_${YEAR}_icemodb.nc ]; then
+  cd MONTHLY
+  ncks -O -v ileadfra,iicethic ${CONFIG}-${CASE}_monthly_${YEAR}_icemodb.nc ${CONFIG}-${CASE}_monthly_${YEAR}_icemodb.nc
+  ncks -O -x -v ileadfra,iicethic ${CONFIG}-${CASE}_monthly_${YEAR}_icemod.nc ${CONFIG}-${CASE}_monthly_${YEAR}_icemod.nc
+  ncks -A ${CONFIG}-${CASE}_monthly_${YEAR}_icemodb.nc ${CONFIG}-${CASE}_monthly_${YEAR}_icemod.nc
+  NTESTMER=`ncdump -h ${CONFIG}-${CASE}_monthly_${YEAR}_icemod.nc |grep float |wc -l`
+  if [ $NTESTMER -ne 15 ]; then
+    echo "~!@#$%^&* PROBLEM WHILE MERGING MONTHLY icemod FILES >>>>>> STOP"
+    exit
+  else
+    rm -f ${CONFIG}-${CASE}_monthly_${YEAR}_icemodb.nc
+  fi
+  cd ..
+fi
+
+cd ${WORKDIR}
+
+# Remove huge concatenated 5d files with fake daily frequency:
+rm -f ${YEAR}/${CONFIG}-${CASE}_5d_*_${YEAR}0101-${YEAR}1231.nc
+
+done ## YEAR
+
+date
