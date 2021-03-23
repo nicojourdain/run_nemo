@@ -27,6 +27,7 @@ field_def.xml \
 iodef_daily_monthly.xml \
 iodef_daily.xml \
 iodef_monthly_daily.xml \
+iodef_monthly.xml \
 namelist_ice_nemo_GENERIC \
 namelist_nemo_GENERIC \
 rebuild.sh \
