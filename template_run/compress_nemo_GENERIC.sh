@@ -13,8 +13,10 @@ set -x
 #ulimit -s unlimited
 
 #- Netcdf library for small fortran scripts (not for NEMO)
-export NC_INC='-I /opt/software/libraries/netcdf/bullxmpi/netcdf-4.3.3-rc2/include -I /opt/software/libraries/netcdf/bullxmpi/netcdf-fortran-4.4.1-4.3.3-rc2/include'
-export NC_LIB='-L /opt/software/libraries/netcdf/bullxmpi/netcdf-4.3.3-rc2/lib -lnetcdf -L /opt/software/libraries/netcdf/bullxmpi/netcdf-fortran-4.4.1-4.3.3-rc2/lib -lnetcdff'
+#export NC_INC='-I /opt/software/libraries/netcdf/bullxmpi/netcdf-4.3.3-rc2/include -I /opt/software/libraries/netcdf/bullxmpi/netcdf-fortran-4.4.1-4.3.3-rc2/include'
+#export NC_LIB='-L /opt/software/libraries/netcdf/bullxmpi/netcdf-4.3.3-rc2/lib -lnetcdf -L /opt/software/libraries/netcdf/bullxmpi/netcdf-fortran-4.4.1-4.3.3-rc2/lib -lnetcdff'
+export NC_INC="-I`nc-config --includedir`"
+export NC_LIB=`nc-config --flibs`
 
 WORKDIR='WWWW'
 NRUN=NNNN

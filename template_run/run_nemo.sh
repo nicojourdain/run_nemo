@@ -7,10 +7,7 @@
 #SBATCH -J run_<config>_<case>
 #SBATCH -e run_nemo.e%j
 #SBATCH -o run_nemo.o%j
-###SBATCH --time=01:39:00
 #SBATCH --time=01:39:00
-
-# Runs in approx. 2h for 190 days with dt=900s
 
 date
 
