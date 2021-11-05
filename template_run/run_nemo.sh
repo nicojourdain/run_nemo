@@ -234,7 +234,7 @@ else
 fi
 
 ##-- calculate corresponding number of time steps for NEMO:
-RN_DT=`grep "rn_rdt " namelist_nemo_GENERIC_${CONFPAR} |grep 'dynamics' |grep 'step' |cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"`
+RN_DT=`grep "rn_Dt " namelist_nemo_GENERIC_${CONFPAR} |grep 'dynamics' |grep 'step' |cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"`
 NIT000=`echo "$NITENDM1 + 1" | bc`
 NITEND=`echo "$NITENDM1 + ${NDAYS} * 86400 / ${RN_DT}" | bc`
 
@@ -313,7 +313,7 @@ do
   fi
   ##- calculate initial and last time step for the child domains :
   ##-- calculate corresponding number of time steps for NEMO:
-  RN_DT_ZOOM=`grep "rn_rdt " ${iZOOM}_namelist_nemo_GENERIC_${CONFIG} |cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"`
+  RN_DT_ZOOM=`grep "rn_Dt " ${iZOOM}_namelist_nemo_GENERIC_${CONFIG} |cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"`
   NIT000_ZOOM=`echo "( ${NITENDM1} * ${RN_DT} / ${RN_DT_ZOOM} ) + 1" | bc`
   NITEND_ZOOM=`echo "( ${NITENDM1} * ${RN_DT} / ${RN_DT_ZOOM} ) + ${NDAYS} * 86400 / ${RN_DT_ZOOM}" | bc`
   ##--
@@ -467,7 +467,7 @@ do
 done
 
 ## TIDES :
-for HARM in `grep clname namelist_nemo_GENERIC_${CONFIG} | awk '{print $3}' |sed -e "s/'//g"`
+for HARM in `grep sn_tide_cnames namelist_nemo_GENERIC_${CONFIG} | awk '{print $3}' |sed -e "s/'//g"`
 do
   ln -s -v ${INPUTDIR}/BDY_TIDES/bdytide_${CONFIG}_${HARM}_grid_T.nc bdytide_${HARM}_grid_T.nc
   ln -s -v ${INPUTDIR}/BDY_TIDES/bdytide_${CONFIG}_${HARM}_grid_U.nc bdytide_${HARM}_grid_U.nc
