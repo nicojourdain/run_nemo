@@ -1,18 +1,29 @@
 # Environment to run NEMO simulations and postprocess outputs
 
+_Contributors:_
+* Nicolas Jourdain (IGE-CNRS)
+
+_Tests:_
+* Has been tested for NEMO-3.6 and NEMO-4.2-RC.
+
 _Known caveats:_
-* _currently only works for NEMO3_
-* _currently only works on occigen (CINES)_
+* Currently only works on occigen (CINES)
 
 
-To clone the git repository:
+To clone the git repository (the standard version is made for NEMO4):
 ```bash
-cd ~
+cd ~ # or anywhere else
 git clone git@github.com:nicojourdain/run_nemo.git # if you use github with SSH key
 git clone https://github.com/nicojourdain/run_nemo.git # otherwise
 ```
+If instead you use NEMO3.6, clone as follows:
+```bash
+cd ~ # or anywhere else
+git clone --branch r3.6 git@github.com:nicojourdain/run_nemo.git # if you use github with SSH key
+git clone --branch r3.6 https://github.com/nicojourdain/run_nemo.git # otherwise
+```
 
-Set up correct environment variables:
+Set up correct environment variables (do it once):
 ```bash
 cd run_nemo
 echo " " >> ~/.bashrc
@@ -24,7 +35,7 @@ source ~/.bashrc
 
 ## Prepare the environment for a simulation
 
-Here we refer to the domain (region, resolution) as "configuration" (e.g., AMUXL12, ORCA025.L75), and to an individual simulation as "case".
+Here we refer to the domain (region, resolution) as "configuration" (e.g., AMUXL025.L75, AMUXL12, ORCA025.L75), and to an individual simulation as "case".
 
 ```bash
 export WORKDIR=$SCRATCHDIR  # choose where you run nemo
