@@ -22,18 +22,25 @@ mkdir run/nemo_${CONFIG}_${CASE}
 for file in calculate_end_date.f90 \
 calculate_end_date_month.f90 \
 compress_nemo_GENERIC.sh \
-domain_def.xml \
-field_def.xml \
-iodef_daily_monthly.xml \
-iodef_daily.xml \
-iodef_monthly_daily.xml \
-iodef_monthly.xml \
+context_nemo.xml \
+domain_def_nemo.xml \
+field_def_nemo-ice.xml \
+field_def_nemo-oce.xml \
+file_def_nemo-ice_daily.xml \
+file_def_nemo-ice_monthly_daily.xml \
+file_def_nemo-ice_monthly.xml \
+file_def_nemo-oce_daily.xml \
+file_def_nemo-oce_monthly_daily.xml \
+file_def_nemo-oce_monthly.xml \
+grid_def_nemo.xml \
+iodef.xml \
 namelist_ice_nemo_GENERIC \
 namelist_nemo_GENERIC \
 rebuild.sh \
 run_nemo.sh
 do
 
+  # if a file exists with $CONFIG as suffix, then use it, otherwise take default script
   if [ -f ${TEMP_NEMO_DIR}/template_run/${file}_${CONFIG} ]; then
     if [ $file == 'run_nemo.sh' ]; then
       sed -e "s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/${file}_${CONFIG} > run/nemo_${CONFIG}_${CASE}/${file}
