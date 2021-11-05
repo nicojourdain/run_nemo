@@ -7,7 +7,7 @@
 <!-- $id$ -->
     <variable_definition>
     <!-- Year of time origin for NetCDF files; defaults to 1800 -->
-       <variable id="ref_year" type="int"   > 1800 </variable>
+       <variable id="ref_year" type="int"   > 1900 </variable>
        <variable id="rho0"     type="float" > 1026.0 </variable>
        <variable id="cpocean"  type="float" > 3991.86795711963 </variable>
        <variable id="convSpsu" type="float" > 0.99530670233846  </variable>

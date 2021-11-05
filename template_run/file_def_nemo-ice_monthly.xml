@@ -9,7 +9,7 @@
 ============================================================================================================
  -->
     
- <file_definition type="one_file" name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="1d" min_digits="4">
+ <file_definition type="one_file" name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="1m" min_digits="4">
 
    <file_group id="1m" output_freq="1mo"  output_level="10" enabled=".TRUE.">  <!-- 1m files -->   	
 

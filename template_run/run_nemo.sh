@@ -70,7 +70,7 @@ export NC_LIB=`nc-config --flibs`
 NEMOdir="${SHAREDELMER}/models/nemo_v4_trunk" # NEMO model directory
 XIOSdir="${SHAREDELMER}/models/xios_trunk" # XIOS directory
 
-FORCINGdir="${SHAREDELMER}/FORCING_SETS/ERA5/AMUNDSEN" # Atmospheric forcing
+FORCINGdir="${SHAREDELMER}/FORCING_SETS/ERA5/ERA5_AMU" # Atmospheric forcing
 
 NZOOM=0  # nb of agrif nests (0 if no agrif nest)
 
@@ -286,15 +286,6 @@ if [ $IS_ISCPL == 'true' ]; then
   echo "WARNING : enabling the ice shelf geometry to move (ln_iscpl=true) !!!"
 fi
 
-##- create mesh_mask file for first iteration only (or if ice shelf coupling) :
-if [ $NRUN -eq 1 ] || [ $IS_ISCPL == 'true' ]; then
-  sed -e "s#<MSH>#  1  #g"  namelist_ref > tmp
-  mv -f tmp namelist_ref
-else
-  sed -e "s#<MSH>#  0  #g"  namelist_ref > tmp
-  mv -f tmp namelist_ref
-fi
-
 echo "s#<CCCC>#${CONFIG}#g ; s#<OOOO>#${CASE}#g ; s#<IIII>#${YEAR0}${MONTH0}${DAY0}#g ; s#<NIT000>#${NIT000}#g ; s#<NITEND>#${NITEND}#g"
 sed -e "s#<CCCC>#${CONFIG}#g ; s#<OOOO>#${CASE}#g ; s#<IIII>#${YEAR0}${MONTH0}${DAY0}#g ; s#<NIT000>#${NIT000}#g ; s#<NITEND>#${NITEND}#g" namelist_ref > tmp
 mv -f tmp namelist_ref
@@ -488,8 +479,8 @@ done
 
 FORDTA=`basename $FORCINGdir`
 rm -f w_bilin.nc w_bicubic.nc
-ln -s -v ${INPUTDIR}/weights_bilin_${FORDTA}_${CONFIG}.nc    w_bilin.nc
-ln -s -v ${INPUTDIR}/weights_bicubic_${FORDTA}_${CONFIG}.nc  w_bicubic.nc
+ln -s -v ${INPUTDIR}/weights_bilin_${FORDTA}_${CONFIG}.nc  w_bilin.nc
+ln -s -v ${INPUTDIR}/weights_bicub_${FORDTA}_${CONFIG}.nc  w_bicubic.nc
 
 # The following only work if in thefollowing order: namsbc_clio, namsbc_core, namsbc_mfs
 IS_BLK=`grep " ln_blk " namelist_cfg | cut -d '=' -f2 | cut -d '!' -f1 |sed -e "s/ //g"`
@@ -520,8 +511,8 @@ for iZOOM in $(seq 1 ${NZOOM})
 do
 
   rm -f ${iZOOM}_w_bilin.nc ${iZOOM}_w_bicubic.nc
-  ln -s ${INPUTDIR}/${iZOOM}_weights_bilin_${FORDTA}_${CONFIG}.nc    ${iZOOM}_w_bilin.nc
-  ln -s ${INPUTDIR}/${iZOOM}_weights_bicubic_${FORDTA}_${CONFIG}.nc  ${iZOOM}_w_bicubic.nc
+  ln -s ${INPUTDIR}/${iZOOM}_weights_bilin_${FORDTA}_${CONFIG}.nc  ${iZOOM}_w_bilin.nc
+  ln -s ${INPUTDIR}/${iZOOM}_weights_bicub_${FORDTA}_${CONFIG}.nc  ${iZOOM}_w_bicubic.nc
 
   IS_BLK=`grep " ln_blk " ${iZOOM}_namelist_cfg | cut -d '=' -f2 | cut -d '!' -f1 |sed -e "s/ //g"`
   if [ $IS_BLK == ".true." ]; then
