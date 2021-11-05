@@ -4,7 +4,7 @@
 #SBATCH --ntasks=96
 #SBATCH --ntasks-per-node=24
 #SBATCH --threads-per-core=1
-#SBATCH -J run_AMUXL025_GNJ002_BM01new
+#SBATCH -J run_AMUXL025.L75_GNJ002_BM01new
 #SBATCH -e run_nemo.e%j
 #SBATCH -o run_nemo.o%j
 ###SBATCH --time=01:39:00
@@ -23,29 +23,33 @@ ulimit -s unlimited
 #=================================================================================
 #=================================================================================
 
-CONFIG='AMUXL025'  ## FULL CONFIG NAME (e.g. "trop075" or "trop075_nest025")
-                 ## NB: THIS NAME SHOULD NOT START WITH A NUMBER
+CONFIG='AMUXL025.L75'  ## FULL CONFIG NAME (e.g. "AMUXL025.L75", "trop075", "trop075_nest025")
+                       ## NB: THIS NAME SHOULD NOT START WITH A NUMBER
 
 CONFPAR=$CONFIG #- IF NO NEST SHOULD BE EQUAL TO $CONFIG
                 #  IF NESTS, SHOULD BE THE ABSOLUTE PARENT CONFIG NAME
                 #  (e.g. CONFPAR="trop075" when CONFIG="trop075_nest025")
 
-CONFEXE='AMU12r_nodiaharm'  # only for nemo.exe
+CONFEXE='AMU'   # only for nemo.exe
 
-CASE='GNJ002_BM02' # should not be too long [>15 char.] otherwise, NEMO file names are affected
+CASE='GNJ002_TEST01' # should not be too long [>15 char.] otherwise, NEMO file names are affected
 
 YEAR0=1972      #- initial year of the long experiment  [ 4 digits ]
 MONTH0=03       #- initial month of the long experiment [ 2 digits ]
 DAY0=01         #- initial day of the long experiment   [ 2 digits ]
 
-YEAR_MAX=2018   #- stop after $YEAR_MAX is completed
+YEAR_MAX=1973   #- stop after $YEAR_MAX is completed
 
-NRUN_MAX=500  #- stop after $NRUN_MAX re-submissions
+NRUN_MAX=500    #- stop after $NRUN_MAX re-submissions
 
-NDAYS=190      #- Split year by slices of $NDAYS days 
+NDAYS=31        #- Split year by slices of $NDAYS days (possibly less if BYMONTH=1)
 
-BYMONTH=1     # =0 to stick to a duration of NDAYS (e.g. keep for initial spin up)
-              # =1 to cut runs to entire months
+BYMONTH=1       # =0 to stick to a duration of NDAYS (e.g. keep for initial spin up)
+                # =1 to cut runs to entire months
+
+OUTPUT_FREQ='1d1m' # = '1d' for daily-mean outputs
+                   # = '1m' for monthly-mean outputs (only for BYMONTH=1)
+                   # = '1d1m' for both daily-mean and monthly-mean outputs (only for BYMONTH=1)
 
 WORKDIR=`pwd`
 
@@ -58,16 +62,18 @@ BDYDIR="${INPUTDIR}/BDY_${GLOBAL_SIM}"  #- input directory for BDYs
 SSSDIR="${INPUTDIR}/SSS_${GLOBAL_SIM}"  #- input directory for SSS relaxation (if any)
 RNFDIR="${INPUTDIR}/RNF_${GLOBAL_SIM}"  #- input directory for runoff relaxation (if any)
 
-TOPO="BedMachineAntarctica-2019-05-24"  # to use bathy_meter_${CONFPAR}_${TOPO}.nc
+TOPO="BedMachineAntarctica-2020-10-08"  # to use domain_cfg_${CONFPAR}_${TOPO}.nc
 
 #- Netcdf library for small fortran scripts (not for NEMO)
-export NC_INC='-I/opt/software/occigen/libraries/netcdf/4.4.0_fortran-4.4.2/hdf5/1.8.17/intel/17.0/openmpi/intel/2.0.1/include'
-export NC_LIB='-L/opt/software/occigen/libraries/netcdf/4.4.0_fortran-4.4.2/hdf5/1.8.17/intel/17.0/openmpi/intel/2.0.1/lib -lnetcdf -lnetcdff'
+#export NC_INC='-I/opt/software/occigen/libraries/netcdf/4.4.0_fortran-4.4.2/hdf5/1.8.17/intel/17.0/openmpi/intel/2.0.1/include'
+#export NC_LIB='-L/opt/software/occigen/libraries/netcdf/4.4.0_fortran-4.4.2/hdf5/1.8.17/intel/17.0/openmpi/intel/2.0.1/lib -lnetcdf -lnetcdff'
+export NC_INC="-I`nc-config --includedir`"
+export NC_LIB=`nc-config --flibs`
 
-NEMOdir="/home/`whoami`/models/nemo_r5151_UKMO_ISF_r5932_nj/NEMOGCM" # NEMO model directory
-XIOSdir="/home/`whoami`/models/xios-1.0" # XIOS directory
+NEMOdir="$SHAREDELMER/models/nemo_v4_trunk" # NEMO model directory
+XIOSdir="$SHAREDELMER/models/xios_trunk" # XIOS directory
 
-FORCINGdir='/store/njourd/FORCING_SETS/DFS5.2' # Atmospheric forcing
+FORCINGdir="$SHAREDELMER/FORCING_SETS/ERA5/AMUNDSEN" # Atmospheric forcing
 
 NZOOM=0  # nb of agrif nests (0 if no agrif nest)
 
@@ -112,11 +118,31 @@ fi
 rm -f xios_server.exe
 ln -s ${XIOSdir}/bin/xios_server.exe
 
-rm -f iodef.xml
+rm -f file_def_nemo-oce.xml file_def_nemo-ice.xml
 if [ $BYMONTH -eq 1 ]; then
-  ln -s -v iodef_monthly_daily.xml iodef.xml
+  if [ $OUTPUT_FREQ == '1d1m' ]; then
+    ln -s -v file_def_nemo-oce_monthly_daily.xml file_def_nemo-oce.xml
+    ln -s -v file_def_nemo-ice_monthly_daily.xml file_def_nemo-ice.xml
+  elif [ $OUTPUT_FREQ == '1m' ]; then
+    ln -s -v file_def_nemo-oce_monthly.xml file_def_nemo-oce.xml
+    ln -s -v file_def_nemo-ice_monthly.xml file_def_nemo-ice.xml
+  elif [ $OUTPUT_FREQ == '1d' ]; then
+    ln -s -v file_def_nemo-oce_daily.xml file_def_nemo-oce.xml
+    ln -s -v file_def_nemo-ice_daily.xml file_def_nemo-ice.xml
+  else
+    echo '~!@#%^&* wrong value of OUTPUT_FREQ >>>>>>>>>> Stop !!'
+    date
+    exit
+  fi
 else
-  ln -s -v iodef_daily.xml iodef.xml
+  if [ $OUTPUT_FREQ == '1d' ]; then
+    ln -s -v file_def_nemo-oce_daily.xml file_def_nemo-oce.xml
+    ln -s -v file_def_nemo-ice_daily.xml file_def_nemo-ice.xml
+  else
+    echo '~!@#%^&* wrong value of OUTPUT_FREQ >>>>>>>>>> Stop !!'
+    date
+    exit
+  fi
 fi
 
 ##############################################
@@ -356,23 +382,13 @@ fi
 ##########
 ##-- import files that are not time dependent if not already there
 
-rm -f coordinates.nc
-ln -s -v ${INPUTDIR}/coordinates_${CONFPAR}.nc coordinates.nc
-
 if [ $CONFPAR == "trop075" ]; then
   rm -f ahmcoef.nc
   ln -s -v ${INPUTDIR}/ahmcoef_${CONFPAR}.nc ahmcoef.nc
 fi
 
-rm -f bathy_meter.nc
-ln -s -v ${INPUTDIR}/bathy_meter_${CONFPAR}_${TOPO}.nc bathy_meter.nc
-
-rm -f isf_draft_meter.nc
-if [ -f ${INPUTDIR}/isf_draft_meter_${CONFPAR}_${TOPO}.nc ]; then
-  ln -s -v ${INPUTDIR}/isf_draft_meter_${CONFPAR}_${TOPO}.nc isf_draft_meter.nc
-else # assuming isf_draft is in the bathy_meter file
-  ln -s -v ${INPUTDIR}/bathy_meter_${CONFPAR}_${TOPO}.nc isf_draft_meter.nc
-fi
+rm -f domain_cfg.nc
+ln -s -v ${INPUTDIR}/domain_cfg_${CONFPAR}_${TOPO}.nc domain_cfg.nc
 
 rm -f chlorophyll.nc
 ln -s -v ${INPUTDIR}/chlorophyll_${CONFPAR}.nc chlorophyll.nc
@@ -400,23 +416,19 @@ if [ $IS_TRADMP == ".true." ]; then
   ln -s -v ${INPUTDIR}/resto_${CONFPAR}.nc resto.nc
 fi
 
+IS_ZDFIWM=`grep ln_zdfiwm namelist_cfg | awk '{print $3}'`
+if [ $IS_ZDFIWM == ".true." ]; then
+  rm -f zdfiwm.nc
+  ln -s -v ${INPUTDIR}/zdfiwm_${CONFPAR}.nc zdfiwm.nc
+fi
+
 # Same for AGRIF NESTS :
 
 for iZOOM in $(seq 1 ${NZOOM})
 do
 
-  rm -f ${iZOOM}_coordinates.nc
-  ln -s -v ${INPUTDIR}/${iZOOM}_coordinates_${CONFPAR}.nc ${iZOOM}_coordinates.nc
-
-  rm -f ${iZOOM}_bathy_meter.nc
-  ln -s -v ${INPUTDIR}/${iZOOM}_bathy_meter_${CONFPAR}.nc ${iZOOM}_bathy_meter.nc
-
-  rm -f ${iZOOM}_isf_draft_meter.nc
-  if [ -f ${INPUTDIR}/${iZOOM}_isf_draft_meter_${CONFPAR}.nc ]; then
-    ln -s -v ${INPUTDIR}/${iZOOM}_isf_draft_meter_${CONFPAR}.nc ${iZOOM}_isf_draft_meter.nc
-  else
-    ln -s -v ${INPUTDIR}/${iZOOM}_bathy_meter_${CONFPAR}.nc ${iZOOM}_isf_draft_meter.nc
-  fi
+  rm -f ${iZOOM}_domain_cfg.nc
+  ln -s -v ${INPUTDIR}/${iZOOM}_domain_cfg_${CONFPAR}_${TOPO}.nc ${iZOOM}_domain_cfg.nc
 
   rm -f ${iZOOM}_chlorophyll.nc
   ln -s -v ${INPUTDIR}/${iZOOM}_chlorophyll_${CONFPAR}.nc ${iZOOM}_chlorophyll.nc
@@ -444,11 +456,16 @@ do
     ln -s -v ${INPUTDIR}/${iZOOM}_resto_${CONFPAR}.nc ${iZOOM}_resto.nc
   fi
 
+  IS_ZDFIWM=`grep ln_zdfiwm ${iZOOM}_namelist_cfg | awk '{print $3}'`
+  if [ $IS_ZDFIWM == ".true." ]; then
+    rm -f ${iZOOM}_zdfiwm.nc
+    ln -s -v ${INPUTDIR}/${iZOOM}_zdfiwm_${CONFPAR}.nc ${iZOOM}_zdfiwm.nc
+  fi
+
 done
 
 ##########
 ##-- import Boundary Conditions (BDYs) 
-##   (it is assumed that you use a coordinates_bdy.nc file)
 
 rm -f coordinates_bdy.nc
 ln -s -v ${INPUTDIR}/coordinates_bdy_${CONFIG}.nc coordinates_bdy.nc
@@ -472,10 +489,6 @@ do
   ln -s -v ${INPUTDIR}/BDY_TIDES/bdytide_${CONFIG}_${HARM}_grid_V.nc bdytide_${HARM}_grid_V.nc
 done
 
-### PATCH ##
-#rm -f bdyT_ice.nc
-#ln -s -v ${BDYDIR}/bdyT_ice_y${YEAR}_${CONFIG}.nc bdyT_ice.nc
-
 ##########
 ##-- atmospheric forcing
 
@@ -485,13 +498,13 @@ ln -s -v ${INPUTDIR}/weights_bilin_${FORDTA}_${CONFIG}.nc    w_bilin.nc
 ln -s -v ${INPUTDIR}/weights_bicubic_${FORDTA}_${CONFIG}.nc  w_bicubic.nc
 
 # The following only work if in thefollowing order: namsbc_clio, namsbc_core, namsbc_mfs
-IS_BLK_CORE=`grep " ln_blk_core " namelist_cfg | cut -d '=' -f2 | cut -d '!' -f1 |sed -e "s/ //g"`
-if [ $IS_BLK_CORE == ".true." ]; then
-  LINE_BLK_CORE=`grep -n namsbc_core namelist_cfg | tail -1 | cut -d ':' -f1`
-  for NAMAT in sn_wndi sn_wndj sn_qsr sn_qlw sn_tair sn_humi sn_prec sn_snow sn_tdif
+IS_BLK=`grep " ln_blk " namelist_cfg | cut -d '=' -f2 | cut -d '!' -f1 |sed -e "s/ //g"`
+if [ $IS_BLK == ".true." ]; then
+  LINE_BLK=`grep -n namsbc_blk namelist_cfg | tail -1 | cut -d ':' -f1`
+  for NAMAT in sn_wndi sn_wndj sn_qsr sn_qlw sn_tair sn_humi sn_prec sn_snow sn_slp
   do
-    ATM_FILE=`awk "/${NAMAT}/ && NR >= ${LINE_BLK_CORE}" namelist_cfg | cut -d "'" -f2 | head -1`
-    IS_CLIM=`awk "/${NAMAT}/ && NR >= ${LINE_BLK_CORE}" namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
+    ATM_FILE=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" namelist_cfg | cut -d "'" -f2 | head -1`
+    IS_CLIM=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
     if [ $IS_CLIM == ".true." ]; then
       rm -f ${ATM_FILE}.nc
       if [ -f ${FORCINGdir}/${ATM_FILE}.nc ]; then
@@ -516,13 +529,13 @@ do
   ln -s ${INPUTDIR}/${iZOOM}_weights_bilin_${FORDTA}_${CONFIG}.nc    ${iZOOM}_w_bilin.nc
   ln -s ${INPUTDIR}/${iZOOM}_weights_bicubic_${FORDTA}_${CONFIG}.nc  ${iZOOM}_w_bicubic.nc
 
-  IS_BLK_CORE=`grep " ln_blk_core " ${iZOOM}_namelist_cfg | cut -d '=' -f2 | cut -d '!' -f1 |sed -e "s/ //g"`
-  if [ $IS_BLK_CORE == ".true." ]; then
-    LINE_BLK_CORE=`grep -n namsbc_core ${iZOOM}_namelist_cfg | tail -1 | cut -d ':' -f1`
-    for NAMAT in sn_wndi sn_wndj sn_qsr sn_qlw sn_tair sn_humi sn_prec sn_snow sn_tdif
+  IS_BLK=`grep " ln_blk " ${iZOOM}_namelist_cfg | cut -d '=' -f2 | cut -d '!' -f1 |sed -e "s/ //g"`
+  if [ $IS_BLK == ".true." ]; then
+    LINE_BLK=`grep -n namsbc_blk ${iZOOM}_namelist_cfg | tail -1 | cut -d ':' -f1`
+    for NAMAT in sn_wndi sn_wndj sn_qsr sn_qlw sn_tair sn_humi sn_prec sn_snow sn_slp
     do
-      ATM_FILE=`awk "/${NAMAT}/ && NR >= ${LINE_BLK_CORE}" ${iZOOM}_namelist_cfg | cut -d "'" -f2 | head -1`
-      IS_CLIM=`awk "/${NAMAT}/ && NR >= ${LINE_BLK_CORE}" ${iZOOM}_namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
+      ATM_FILE=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" ${iZOOM}_namelist_cfg | cut -d "'" -f2 | head -1`
+      IS_CLIM=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" ${iZOOM}_namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
       if [ $IS_CLIM == ".true." ]; then
         rm -f ${iZOOM}_${ATM_FILE}.nc
         if [ -f ${FORCINGdir}/${iZOOM}_${ATM_FILE}.nc ]; then
