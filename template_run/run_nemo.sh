@@ -52,7 +52,7 @@ WORKDIR=`pwd`
 
 STOCKDIR="$SHAREDELMER"  #- restart, output directory
 
-INPUTDIR="/scratch/shared/egige60/input/nemo_${CONFIG}"  #- input directory
+INPUTDIR="${SHAREDELMER}/input/nemo_${CONFIG}"  #- input directory
 
 GLOBAL_SIM='GNJ002'  # ORCA simulation used for BDY, runoff and sss restoring
 BDYDIR="${INPUTDIR}/BDY_${GLOBAL_SIM}"  #- input directory for BDYs
@@ -67,10 +67,10 @@ TOPO="BedMachineAntarctica-2020-10-08"  # to use domain_cfg_${CONFPAR}_${TOPO}.n
 export NC_INC="-I`nc-config --includedir`"
 export NC_LIB=`nc-config --flibs`
 
-NEMOdir="$SHAREDELMER/models/nemo_v4_trunk" # NEMO model directory
-XIOSdir="$SHAREDELMER/models/xios_trunk" # XIOS directory
+NEMOdir="${SHAREDELMER}/models/nemo_v4_trunk" # NEMO model directory
+XIOSdir="${SHAREDELMER}/models/xios_trunk" # XIOS directory
 
-FORCINGdir="$SHAREDELMER/FORCING_SETS/ERA5/AMUNDSEN" # Atmospheric forcing
+FORCINGdir="${SHAREDELMER}/FORCING_SETS/ERA5/AMUNDSEN" # Atmospheric forcing
 
 NZOOM=0  # nb of agrif nests (0 if no agrif nest)
 
@@ -107,9 +107,9 @@ unset    OMPI_MCA_pubsub
 
 rm -f nemo.exe
 if [ $NZOOM -gt 0 ]; then
-  ln -s ${NEMOdir}/CONFIG/${CONFEXE}_agrif/BLD/bin/nemo.exe
+  ln -s ${NEMOdir}/cfgs/${CONFEXE}_agrif/BLD/bin/nemo.exe
 else
-  ln -s ${NEMOdir}/CONFIG/${CONFEXE}/BLD/bin/nemo.exe
+  ln -s ${NEMOdir}/cfgs/${CONFEXE}/BLD/bin/nemo.exe
 fi
 
 rm -f xios_server.exe
@@ -256,9 +256,6 @@ echo " "
 
 #####################################################################
 ##-- create executable and rebuild namelist to rebuild restart files
-
-rm -f rebuild_nemo.exe
-ln -s ${NEMOdir}/TOOLS/REBUILD_NEMO/BLD/bin/rebuild_nemo.exe
 
 ###############################################################
 ##-- edit NEMO's namelist
@@ -669,19 +666,26 @@ date
 echo " "
 
 ##-- Rebuild mesh_mask, output.abbort and output.init :
-
+rm -f rebuild_nemo.exe rebuild_nemo
+ln -s -v ${NEMOdir}/tools/REBUILD_NEMO/BLD/bin/rebuild_nemo.exe
+ln -s -v ${NEMOdir}/tools/REBUILD_NEMO/rebuild_nemo
 for STUF in mesh_mask output.abort output.init
 do
   if [ -f ${STUF}_0000.nc ]; then
-    ./rebuild.sh ${STUF}
+    NF=`ls -1 ${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
+    rebuild_nemo -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
+    rm -f ${STUF}_[0-9][0-9][0-9][0-9].nc
     for iZOOM in $(seq 1 ${NZOOM})
     do
       if [ -f ${iZOOM}_${STUF}_0000.nc ]; then
-        ./rebuild.sh ${STUF} $iZOOM
+        NF=`ls -1 ${iZOOM}_${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
+        rebuild_nemo -d 1 -x 200 -y 200 -z 1 -t 1 ${iZOOM}_${STUF} $NF
       fi
+      rm -f ${iZOOM}_${STUF}_[0-9][0-9][0-9][0-9].nc
     done
   fi
 done
+
 
 ##-- export and compress output files:
 
@@ -762,24 +766,32 @@ if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
   date
   echo " "
 
-  ## rebuild restart files for mother grid :
-  FILEBASE=`ls -1 ${CONFIG}-${CASE}_[0-9]???????_restart_0000.nc | sed -e "s/_0000.nc//g"`
-  ./rebuild.sh $FILEBASE
-  mv  ${FILEBASE}.nc restart_${LAST_RESTART_NIT}.nc
-  FILEBASE=`ls -1 ${CONFIG}-${CASE}_[0-9]???????_restart_ice_0000.nc | sed -e "s/_0000.nc//g"`
-  ./rebuild.sh $FILEBASE
-  mv  ${FILEBASE}.nc restart_ice_${LAST_RESTART_NIT}.nc
+  ## rebuild restart files for parent grid :
+  FILEBASE_OCE=`ls -1 ${CONFIG}-${CASE}_[0-9]???????_restart_0000.nc | sed -e "s/_0000.nc//g"`
+  FILEBASE_ICE=`ls -1 ${CONFIG}-${CASE}_[0-9]???????_restart_ice_0000.nc | sed -e "s/_0000.nc//g"`
+  for STUF in $FILEBASE_OCE $FILEBASE_ICE 
+  do
+    NF=`ls -1 ${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
+    rebuild_nemo -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
+    rm -f ${STUF}_[0-9][0-9][0-9][0-9].nc
+  done
+  mv ${FILEBASE_OCE}.nc restart_${LAST_RESTART_NIT}.nc
+  mv ${FILEBASE_ICE}.nc restart_ice_${LAST_RESTART_NIT}.nc
 
   ## rebuild restart files for child domains :
   for iZOOM in $(seq 1 ${NZOOM})
   do
     LAST_RESTART_NIT_ZOOM=`cat ${iZOOM}_restart_nit.txt`
-    FILEBASE=`ls -1 ${iZOOM}_${CONFIG}-${CASE}_[0-9]???????_restart_0000.nc | sed -e "s/_0000.nc//g"`
-    ./rebuild.sh $FILEBASE $iZOOM
-    mv  ${FILEBASE}.nc ${iZOOM}_restart_${LAST_RESTART_NIT_ZOOM}.nc
-    FILEBASE=`ls -1 ${iZOOM}_${CONFIG}-${CASE}_[0-9]???????_restart_ice_0000.nc | sed -e "s/_0000.nc//g"`
-    ./rebuild.sh $FILEBASE $iZOOM
-    mv  ${FILEBASE}.nc ${iZOOM}_restart_ice_${LAST_RESTART_NIT_ZOOM}.nc
+    FILEBASE_OCE=`ls -1 ${iZOOM}_${CONFIG}-${CASE}_[0-9]???????_restart_0000.nc | sed -e "s/_0000.nc//g"`
+    FILEBASE_ICE=`ls -1 ${iZOOM}_${CONFIG}-${CASE}_[0-9]???????_restart_ice_0000.nc | sed -e "s/_0000.nc//g"`
+    for STUF in $FILEBASE_OCE $FILEBASE_ICE
+    do
+      NF=`ls -1 ${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
+      rebuild_nemo -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
+      rm -f ${STUF}_[0-9][0-9][0-9][0-9].nc
+    done
+    mv ${FILEBASE_OCE}.nc ${iZOOM}_restart_${LAST_RESTART_NIT_ZOOM}.nc
+    mv ${FILEBASE_ICE}.nc ${iZOOM}_restart_ice_${LAST_RESTART_NIT_ZOOM}.nc
   done
 
   echo " "
