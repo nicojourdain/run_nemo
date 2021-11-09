@@ -488,8 +488,8 @@ if [ $IS_BLK == ".true." ]; then
   LINE_BLK=`grep -n namsbc_blk namelist_cfg | tail -1 | cut -d ':' -f1`
   for NAMAT in sn_wndi sn_wndj sn_qsr sn_qlw sn_tair sn_humi sn_prec sn_snow sn_slp
   do
-    ATM_FILE=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" namelist_cfg | cut -d "'" -f2 | head -1`
-    IS_CLIM=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
+    ATM_FILE=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" namelist_cfg | cut -d "'" -f2 | grep -v \"${NAMAT}\" | head -1`
+    IS_CLIM=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" namelist_cfg | grep -v \"${NAMAT}\" | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
     if [ $IS_CLIM == ".true." ]; then
       rm -f ${ATM_FILE}.nc
       if [ -f ${FORCINGdir}/${ATM_FILE}.nc ]; then
@@ -519,8 +519,8 @@ do
     LINE_BLK=`grep -n namsbc_blk ${iZOOM}_namelist_cfg | tail -1 | cut -d ':' -f1`
     for NAMAT in sn_wndi sn_wndj sn_qsr sn_qlw sn_tair sn_humi sn_prec sn_snow sn_slp
     do
-      ATM_FILE=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" ${iZOOM}_namelist_cfg | cut -d "'" -f2 | head -1`
-      IS_CLIM=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" ${iZOOM}_namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
+      ATM_FILE=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" ${iZOOM}_namelist_cfg | cut -d "'" -f2 | grep -v \"${NAMAT}\" | head -1`
+      IS_CLIM=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" ${iZOOM}_namelist_cfg | grep -v \"${NAMAT}\" | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
       if [ $IS_CLIM == ".true." ]; then
         rm -f ${iZOOM}_${ATM_FILE}.nc
         if [ -f ${FORCINGdir}/${iZOOM}_${ATM_FILE}.nc ]; then
@@ -660,7 +660,7 @@ echo " "
 rm -f rebuild_nemo.exe rebuild_nemo
 ln -s -v ${NEMOdir}/tools/REBUILD_NEMO/BLD/bin/rebuild_nemo.exe
 ln -s -v ${NEMOdir}/tools/REBUILD_NEMO/rebuild_nemo
-for STUF in mesh_mask output.abort output.init
+for STUF in mesh_mask bdy_mesh output.abort output.abort_ice output.init
 do
   if [ -f ${STUF}_0000.nc ]; then
     NF=`ls -1 ${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`

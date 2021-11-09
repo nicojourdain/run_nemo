@@ -39,19 +39,19 @@
 	  <field field_ref="wspd"         name="windsp"       />
 	  <field field_ref="precip"   />
 	  <field field_ref="snowpre"  />
-          <field field_ref="isfgammat"    name="sogammat_cav" />
-          <field field_ref="isfgammas"    name="sogammas_cav" />
-          <field field_ref="isfustar"     name="ustar_cav"    />
-          <field field_ref="isfthermald"  name="thermald_cav" />
-          <field field_ref="ttbl"         name="ttbl_cav"     />
-          <field field_ref="stbl"         name="stbl_cav"     />
-          <field field_ref="utbl"         name="utbl_cav"     />
-          <field field_ref="vtbl"         name="vtbl_cav"     />
-          <field field_ref="fwfisf"       name="sowflisf_cav" />
-          <field field_ref="qoceisf"      name="qoceisf_cav"  />
-          <field field_ref="qlatisf"      name="qlatisf_cav"  />
-          <field field_ref="qhcisf"       name="qhcisf_cav"   />
-          <field field_ref="qconisf"      name="qhcond_cav"   />
+          <field field_ref="isfgammat"  />
+          <field field_ref="isfgammas"  />
+          <field field_ref="isfustar"   />
+          <field field_ref="isfthermald_cav"  name="isfthermald" />
+          <field field_ref="ttbl_cav"         name="ttbl"        />
+          <field field_ref="stbl"       />
+          <field field_ref="utbl"       />
+          <field field_ref="vtbl"       />
+          <field field_ref="fwfisf_cav"       name="fwfisf"   />
+          <field field_ref="qoceisf_cav"      name="qoceisf"  />
+          <field field_ref="qlatisf_cav"      name="qlatisf"  />
+          <field field_ref="qhcisf_cav"       name="qhcisf"   />
+          <field field_ref="qconisf"    />
 	</file>
 
 	<file id="file13" name_suffix="_grid_U" description="ocean U grid variables" >
