@@ -660,17 +660,17 @@ echo " "
 rm -f rebuild_nemo.exe rebuild_nemo
 ln -s -v ${NEMOdir}/tools/REBUILD_NEMO/BLD/bin/rebuild_nemo.exe
 ln -s -v ${NEMOdir}/tools/REBUILD_NEMO/rebuild_nemo
-for STUF in mesh_mask bdy_mesh output.abort output.abort_ice output.init
+for STUF in mesh_mask bdy_mesh output.abort output.abort_ice output.init output.init_ice
 do
   if [ -f ${STUF}_0000.nc ]; then
     NF=`ls -1 ${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
-    rebuild_nemo -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
+    rebuild_nemo -m -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
     rm -f ${STUF}_[0-9][0-9][0-9][0-9].nc
     for iZOOM in $(seq 1 ${NZOOM})
     do
       if [ -f ${iZOOM}_${STUF}_0000.nc ]; then
         NF=`ls -1 ${iZOOM}_${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
-        rebuild_nemo -d 1 -x 200 -y 200 -z 1 -t 1 ${iZOOM}_${STUF} $NF
+        rebuild_nemo -m -d 1 -x 200 -y 200 -z 1 -t 1 ${iZOOM}_${STUF} $NF
       fi
       rm -f ${iZOOM}_${STUF}_[0-9][0-9][0-9][0-9].nc
     done
@@ -763,7 +763,7 @@ if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
   for STUF in $FILEBASE_OCE $FILEBASE_ICE 
   do
     NF=`ls -1 ${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
-    rebuild_nemo -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
+    rebuild_nemo -m -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
     rm -f ${STUF}_[0-9][0-9][0-9][0-9].nc
   done
   mv ${FILEBASE_OCE}.nc restart_${LAST_RESTART_NIT}.nc
@@ -778,7 +778,7 @@ if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
     for STUF in $FILEBASE_OCE $FILEBASE_ICE
     do
       NF=`ls -1 ${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
-      rebuild_nemo -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
+      rebuild_nemo -m -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
       rm -f ${STUF}_[0-9][0-9][0-9][0-9].nc
     done
     mv ${FILEBASE_OCE}.nc ${iZOOM}_restart_${LAST_RESTART_NIT_ZOOM}.nc
