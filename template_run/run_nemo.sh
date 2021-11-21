@@ -571,7 +571,7 @@ fi
 ##-- Initial state or Restart
 
 rm -f restart.nc restart_ice.nc #restart.obc
-rm -f dta_temp_y????m??.nc dta_sal_y????m??.nc dta_temp.nc dta_sal.nc
+rm -f istate_TS_y????m??.nc istate_sea_ice_y????m??.nc istate_TS.nc istate_sea_ice.nc
 RSTN=`grep "from a restart file" namelist_cfg | awk '{print $3}' | sed -e "s/\.//g"`
 NIT_RST=${NITENDM1}
 if [ $RSTN == "true" ]; then
@@ -592,15 +592,15 @@ if [ $RSTN == "true" ]; then
   fi
 else
   echo "Not in restart mode -> import initial T,S state"
-  ln -s -v ${INPUTDIR}/dta_temp_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc dta_temp.nc
-  ln -s -v ${INPUTDIR}/dta_sal_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc  dta_sal.nc
+  ln -s -v ${INPUTDIR}/istate_TS_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc istate_TS.nc
+  ln -s -v ${INPUTDIR}/istate_sea_ice_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc  istate_sea_ice.nc
 fi
 
 for iZOOM in $(seq 1 ${NZOOM})
 do
 
   rm -f ${iZOOM}_restart.nc ${iZOOM}_restart_ice.nc
-  rm -f ${iZOOM}_dta_temp_y????m??.nc ${iZOOM}_dta_sal_y????m??.nc ${iZOOM}_dta_temp.nc ${iZOOM}_dta_sal.nc
+  rm -f ${iZOOM}_istate_TS_y????m??.nc ${iZOOM}_istate_sea_ice_y????m??.nc ${iZOOM}_istate_TS.nc ${iZOOM}_istate_sea_ice.nc
   RSTN=`grep "from a restart file" namelist_cfg | awk '{print $3}' | sed -e "s/\.//g"`
   NIT_RST=${NITENDM1}
   if [ $RSTN == "true" ]; then
@@ -621,8 +621,8 @@ do
     fi
   else
     echo "Not in restart mode -> import initial T,S state for the zoom"
-    ln -s -v ${iZOOM}_dta_temp_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc ${iZOOM}_dta_temp_y${Y0}m${M0}.nc
-    ln -s -v ${iZOOM}_dta_sal_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc  ${iZOOM}_dta_sal_y${Y0}m${M0}.nc
+    ln -s -v ${iZOOM}_istate_TS_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc ${iZOOM}_istate_TS_y${Y0}m${M0}.nc
+    ln -s -v ${iZOOM}_istate_sea_ice_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc  ${iZOOM}_istate_sea_ice_y${Y0}m${M0}.nc
   fi
 
 done
@@ -676,7 +676,7 @@ do
     done
   fi
 done
-
+rm -f nam_rebuild_[0-9][0-9][0-9][0-9][0-9]
 
 ##-- export and compress output files:
 

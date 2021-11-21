@@ -25,7 +25,7 @@
           <field field_ref="sbs"      />
 	</file>
       
-        <file id="file12" name_suffix="SBC" description="surface fluxes variables" >
+        <file id="file12" name_suffix="_SBC" description="surface fluxes variables" >
 	  <field field_ref="empmr"        name="wfo"          />
 	  <field field_ref="erp"      />
 	  <field field_ref="qsr_oce"  />
@@ -51,7 +51,8 @@
           <field field_ref="qoceisf_cav"      name="qoceisf"  />
           <field field_ref="qlatisf_cav"      name="qlatisf"  />
           <field field_ref="qhcisf_cav"       name="qhcisf"   />
-          <field field_ref="qconisf"    />
+          <field field_ref="qconisf"     />
+          <field field_ref="iceberg_cea" />
 	</file>
 
 	<file id="file13" name_suffix="_grid_U" description="ocean U grid variables" >
@@ -92,7 +93,7 @@
           <field field_ref="sbs"      />
 	</file>
       
-        <file id="file17" name_suffix="SBC" description="surface fluxes variables" >
+        <file id="file17" name_suffix="_SBC" description="surface fluxes variables" >
 	  <field field_ref="empmr"        name="wfo"          />
 	  <field field_ref="erp"      />
 	  <field field_ref="qsr_oce"  />
@@ -118,7 +119,8 @@
           <field field_ref="qoceisf_cav"      name="qoceisf"  />
           <field field_ref="qlatisf_cav"      name="qlatisf"  />
           <field field_ref="qhcisf_cav"       name="qhcisf"   />
-          <field field_ref="qconisf"    />
+          <field field_ref="qconisf"     />
+          <field field_ref="iceberg_cea" />
 	</file>
 
 	<file id="file18" name_suffix="_grid_U" description="ocean U grid variables" >
@@ -151,7 +153,7 @@
 	  <field field_ref="ttrd_zdf"         name="ttrd_zdf"        > @ttrd_zdf_e3t / @e3t </field>
 	  <field field_ref="ttrd_evd"         name="ttrd_evd"        > @ttrd_evd_e3t / @e3t </field>
 	  <field field_ref="ttrd_bbl"         name="ttrd_bbl"        > @ttrd_bbl_e3t / @e3t </field>
-	  <field field_ref="ttrd_qns"         name="ttrd_qns"        > @ttrd_qns_e3t / @e3t </field>
+	  <field field_ref="ttrd_qns"         name="ttrd_qns"        > @ttrd_qns_e3t / @e3ts </field>
 	  <field field_ref="ttrd_qsr"         name="ttrd_qsr"        > @ttrd_qsr_e3t / @e3t </field>
 	  <!-- <field field_ref="ttrd_dmp"         name="ttrd_dmp"        > @ttrd_dmp_e3t / @e3t </field> -->
 	  <!-- <field field_ref="ttrd_bbc"         name="ttrd_bbc"        > @ttrd_bbc_e3t / @e3t </field> -->
@@ -166,7 +168,7 @@
           <field field_ref="strd_zdf"         name="strd_zdf"        > @strd_zdf_e3t / @e3t </field>
           <field field_ref="strd_evd"         name="strd_evd"        > @strd_evd_e3t / @e3t </field>
           <field field_ref="strd_bbl"         name="strd_bbl"        > @strd_bbl_e3t / @e3t </field>
-          <field field_ref="strd_cdt"         name="strd_cdt"        > @strd_cdt_e3t / @e3t </field>
+          <field field_ref="strd_cdt"         name="strd_cdt"        > @strd_cdt_e3t / @e3ts </field>
 	  <!-- <field field_ref="strd_dmp"         name="strd_dmp"        > @strd_dmp_e3t / @e3t </field> -->
 	</file>
 
