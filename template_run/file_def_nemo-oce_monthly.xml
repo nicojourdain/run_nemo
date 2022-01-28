@@ -51,8 +51,7 @@
           <field field_ref="qoceisf_cav"      name="qoceisf"  />
           <field field_ref="qlatisf_cav"      name="qlatisf"  />
           <field field_ref="qhcisf_cav"       name="qhcisf"   />
-          <field field_ref="qconisf"     />
-          <field field_ref="iceberg_cea" />
+          <field field_ref="qconisf"    />
 	</file>
 
 	<file id="file18" name_suffix="_grid_U" description="ocean U grid variables" >

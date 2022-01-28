@@ -52,6 +52,7 @@
        <field field_ref="sheastr"          name="sheastr" />
        <field field_ref="sig1_pnorm"       name="sig1_pnorm"/>
        <field field_ref="sig2_pnorm"       name="sig2_pnorm"/>
+       <field field_ref="taum_ice"         name="taum_ice"  />
        
        <!-- heat fluxes -->
        <field field_ref="qt_oce_ai"        name="qt_oce_ai"  />
@@ -63,7 +64,7 @@
        <field field_ref="qns_ice"          name="qns_ice"    />
        <field field_ref="qemp_ice"         name="qemp_ice"   />
        <field field_ref="albedo"           name="albedo"     />
-       
+
        <field field_ref="hfxcndtop"        name="hfxcndtop"  />
        <field field_ref="hfxcndbot"        name="hfxcndbot"  />
        <field field_ref="hfxsensib"        name="hfxsensib"  />
@@ -122,6 +123,7 @@
        <field field_ref="sig2_pnorm"       name="sig2_pnorm"/>
        
        <!-- heat fluxes -->
+       <!--
        <field field_ref="qt_oce_ai"        name="qt_oce_ai"  />
        <field field_ref="qt_atm_oi"        name="qt_atm_oi"  />
        <field field_ref="qtr_ice_top"      name="qtr_ice_top"/>
@@ -131,7 +133,8 @@
        <field field_ref="qns_ice"          name="qns_ice"    />
        <field field_ref="qemp_ice"         name="qemp_ice"   />
        <field field_ref="albedo"           name="albedo"     />
-       
+       -->       
+
        <field field_ref="hfxcndtop"        name="hfxcndtop"  />
        <field field_ref="hfxcndbot"        name="hfxcndbot"  />
        <field field_ref="hfxsensib"        name="hfxsensib"  />

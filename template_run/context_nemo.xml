@@ -17,11 +17,11 @@
     </variable_definition>
 <!-- Fields definition -->
     <field_definition src="./field_def_nemo-oce.xml"/>    <!--  NEMO ocean dynamics     -->
-    <field_definition src="./field_def_nemo-ice.xml"/>    <!--  NEMO sea-ice model      -->
+    <field_definition src="./field_def_nemo-ice.xml"/>
 
 <!-- Files definition -->
     <file_definition src="./file_def_nemo-oce.xml"/>     <!--  NEMO ocean dynamics      -->
-    <file_definition src="./file_def_nemo-ice.xml"/>     <!--  NEMO sea-ice model       -->
+    <file_definition src="./file_def_nemo-ice.xml"/>
     <!-- 
 ============================================================================================================
 = grid definition = = DO NOT CHANGE =
