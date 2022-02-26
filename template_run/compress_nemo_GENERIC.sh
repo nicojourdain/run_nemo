@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -C HSW24
+#SBATCH -C BDW28
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
