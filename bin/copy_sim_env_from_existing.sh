@@ -75,7 +75,8 @@ done
 
 mkdir output/nemo_${CONFIG_NEW}_${CASE_NEW}
 
-cp -p output/nemo_${CONFIG_OLD}_${CASE_OLD}/*.f90 output/nemo_${CONFIG_NEW}_${CASE_NEW}/.
+cp -p output/nemo_${CONFIG_OLD}_${CASE_OLD}/*.f90 output/nemo_${CONFIG_NEW}_${CASE_NEW}/. 2>/dev/null || :
+cp -p output/nemo_${CONFIG_OLD}_${CASE_OLD}/*.py output/nemo_${CONFIG_NEW}_${CASE_NEW}/. 2>/dev/null || :
 
 for file in output/nemo_${CONFIG_OLD}_${CASE_OLD}/postpro*.sh
 do
