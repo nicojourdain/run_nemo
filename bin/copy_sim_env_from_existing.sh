@@ -51,7 +51,7 @@ fi
 
 ## 1- Prepare running scripts
 
-mkdir run/nemo_${CONFIG_NEW}_${CASE_NEW}
+mkdir -pv run/nemo_${CONFIG_NEW}_${CASE_NEW}
 
 cp -p run/nemo_${CONFIG_OLD}_${CASE_OLD}/*.f90 run/nemo_${CONFIG_NEW}_${CASE_NEW}/.
 cp -p run/nemo_${CONFIG_OLD}_${CASE_OLD}/*.xml run/nemo_${CONFIG_NEW}_${CASE_NEW}/.
@@ -73,7 +73,7 @@ done
 
 ## 2- Prepare postprocessing scripts
 
-mkdir output/nemo_${CONFIG_NEW}_${CASE_NEW}
+mkdir -pv output/nemo_${CONFIG_NEW}_${CASE_NEW}
 
 cp -p output/nemo_${CONFIG_OLD}_${CASE_OLD}/*.f90 output/nemo_${CONFIG_NEW}_${CASE_NEW}/. 2>/dev/null || :
 cp -p output/nemo_${CONFIG_OLD}_${CASE_OLD}/*.py output/nemo_${CONFIG_NEW}_${CASE_NEW}/. 2>/dev/null || :
@@ -85,3 +85,6 @@ do
   chmod +x $file2
 done
 
+## 3- Prepare restart directory
+
+mkdir -pv restart/nemo_${CONFIG_NEW}_${CASE_NEW}
