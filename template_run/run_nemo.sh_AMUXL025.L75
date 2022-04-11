@@ -746,7 +746,7 @@ if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
   sbatch ./compress_nemo_${NRUN}.sh
 
   ##-- write last restart time step of mother grid in prod_nemo.db:
-  LAST_RESTART_NIT=`ls -lrt ${CONFIG}-${CASE}_*_restart_*.nc |tail -1 | sed -e "s/${CONFIG}-${CASE}//g" | cut -d ' ' -f9 | cut -d '_' -f2`
+  LAST_RESTART_NIT=`ls -1 ${CONFIG}-${CASE}_*_restart_*.nc | tail -1 | sed -e "s/${CONFIG}-${CASE}//g" | cut -d '_' -f2`
   echo " "
   echo "Last restart created at ocean time step ${LAST_RESTART_NIT}"
   echo "  ---> writting this date in prod_nemo.db"
@@ -755,7 +755,7 @@ if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
   ##-- add last restart time step on chidren grids (at the end of last line in prod_nemo.db):
   for iZOOM in $(seq 1 ${NZOOM})
   do
-    LAST_RESTART_NIT_ZOOM=`ls -lrt ${iZOOM}_${CONFIG}-${CASE}_*_restart_*.nc |tail -1 | sed -e "s/${iZOOM}_${CONFIG}-${CASE}//g" | cut -d ' ' -f9 | cut -d '_' -f2`
+    LAST_RESTART_NIT_ZOOM=`ls -1 ${iZOOM}_${CONFIG}-${CASE}_*_restart_*.nc | tail -1 | sed -e "s/${iZOOM}_${CONFIG}-${CASE}//g" | cut -d '_' -f2`
     sed -e "`wc -l prod_nemo.db|cut -d ' ' -f1`s/$/ ${LAST_RESTART_NIT_ZOOM}/g" prod_nemo.db > tmp
     mv tmp prod_nemo.db
     echo " "
