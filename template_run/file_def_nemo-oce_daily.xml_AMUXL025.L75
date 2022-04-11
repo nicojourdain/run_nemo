@@ -25,7 +25,7 @@
           <field field_ref="sbs"      />
 	</file>
       
-        <file id="file12" name_suffix="SBC" description="surface fluxes variables" >
+        <file id="file12" name_suffix="_SBC" description="surface fluxes variables" >
 	  <field field_ref="empmr"        name="wfo"          />
 	  <field field_ref="erp"      />
 	  <field field_ref="qsr_oce"  />
