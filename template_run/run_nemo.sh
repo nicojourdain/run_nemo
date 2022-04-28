@@ -381,7 +381,7 @@ ln -s -v ${INPUTDIR}/chlorophyll_${CONFPAR}.nc chlorophyll.nc
 IS_RNF=`grep " ln_rnf " namelist_cfg | grep '\.' | cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"`
 if [ $IS_RNF == ".true." ]; then
   IS_CLIM=`grep " sn_rnf " namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g"`
-  if [ $IS_CLIM == ".true" ]; then
+  if [ $IS_CLIM == ".true." ]; then
     rm -f runoff.nc runoff_y????.nc
     ln -s -v ${INPUTDIR}/runoff_${CONFPAR}.nc runoff.nc
   else
