@@ -57,7 +57,8 @@ do
   # if a file exists with $CONFIG as suffix, then use it, otherwise take default script
   if [ -f ${TEMP_NEMO_DIR}/template_run/${file}_${CONFIG} ]; then
     if [ $file == 'run_nemo.sh' ]; then
-      sed -e "s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/${file}_${CONFIG} > run/nemo_${CONFIG}_${CASE}/${file}
+      cat ${TEMP_NEMO_DIR}/template_run/header_$HOST > run/nemo_${CONFIG}_${CASE}/${file}
+      sed -e "s#<HEADER>##g ; s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/${file}_${CONFIG} >> run/nemo_${CONFIG}_${CASE}/${file}
       chmod +x run/nemo_${CONFIG}_${CASE}/${file}
     else
       cp -p ${TEMP_NEMO_DIR}/template_run/${file}_${CONFIG} run/nemo_${CONFIG}_${CASE}/${file}
@@ -65,7 +66,8 @@ do
     echo "Copying template_run/${file}_${CONFIG}"
   else
     if [ $file == 'run_nemo.sh' ]; then
-      sed -e "s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/${file} > run/nemo_${CONFIG}_${CASE}/${file}
+      cat ${TEMP_NEMO_DIR}/template_run/header_$HOST > run/nemo_${CONFIG}_${CASE}/${file}
+      sed -e "s#<HEADER>##g ; s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/${file} >> run/nemo_${CONFIG}_${CASE}/${file}
       chmod +x run/nemo_${CONFIG}_${CASE}/${file}
     else
       cp -p ${TEMP_NEMO_DIR}/template_run/${file} run/nemo_${CONFIG}_${CASE}/.
@@ -74,11 +76,6 @@ do
   fi
 
 done
-
-# Put correct batch header :
-cat ${TEMP_NEMO_DIR}/template_run/header_$HOST > tmp
-cat run/nemo_${CONFIG}_${CASE}/run_nemo.sh |sed -e "s/<HEADER>//g" >> tmp
-mv tmp run/nemo_${CONFIG}_${CASE}/run_nemo.sh
 
 #mv run/nemo_${CONFIG}_${CASE}/namelist_nemo-oce_GENERIC run/nemo_${CONFIG}_${CASE}/namelist_nemo-oce_GENERIC_${CONFIG}
 #mv run/nemo_${CONFIG}_${CASE}/namelist_nemo-ice_GENERIC run/nemo_${CONFIG}_${CASE}/namelist_nemo-ice_GENERIC_${CONFIG}
