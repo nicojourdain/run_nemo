@@ -4,7 +4,7 @@
 #SBATCH --ntasks=392
 #SBATCH --ntasks-per-node=28
 #SBATCH --threads-per-core=1
-#SBATCH -J run_eAMUXL12.L121_TEST01
+#SBATCH -J run_<config>_<case>
 #SBATCH -e run_nemo.e%j
 #SBATCH -o run_nemo.o%j
 #SBATCH --time=06:19:00
@@ -20,7 +20,7 @@ ulimit -s unlimited
 #=================================================================================
 #=================================================================================
 
-CONFIG='eAMUXL12.L121'  ## FULL CONFIG NAME (e.g. "AMUXL025.L75", "trop075", "trop075_nest025")
+CONFIG='<config>'  ## FULL CONFIG NAME (e.g. "AMUXL025.L75", "trop075", "trop075_nest025")
                        ## NB: THIS NAME SHOULD NOT START WITH A NUMBER
 
 CONFPAR=$CONFIG #- IF NO NEST SHOULD BE EQUAL TO $CONFIG
@@ -29,7 +29,7 @@ CONFPAR=$CONFIG #- IF NO NEST SHOULD BE EQUAL TO $CONFIG
 
 CONFEXE='AMU'   # only for nemo.exe
 
-CASE='TEST01' # should not be too long [>15 char.] otherwise, NEMO file names are affected
+CASE='<case>' # should not be too long [>15 char.] otherwise, NEMO file names are affected
 
 YEAR0=1979      #- initial year of the long experiment  [ 4 digits ]
 MONTH0=03       #- initial month of the long experiment [ 2 digits ]
