@@ -32,18 +32,20 @@ NRUN_MAX=2      #- stop after $NRUN_MAX re-submissions
 
 NDAYS=1         #- Split year by slices of $NDAYS days (possibly less if BYMONTH=1)
 
-BYMONTH=0       # =0 to stick to a duration of NDAYS (e.g. keep for initial spin up)
-                # =1 to cut runs to entire months
+BYMONTH=0       # =0 to stick to a duration of NDAYS (or cut to either 365 or 366 days if > 1year).
+                # =1 to cut runs to entire months (e.g. cut to 31 days for January if NDAYS=32).
 
 OUTPUT_FREQ='1d' # = '1d' for daily-mean outputs
+                 # = '5d' for 5-day-mean outputs (only for BYMONTH=0)
                  # = '1m' for monthly-mean outputs (only for BYMONTH=1)
                  # = '1d1m' for both daily-mean and monthly-mean outputs (only for BYMONTH=1)
+                 # = '5d1y' for both 5-day-mean and yearly-mean outputs (only for BYMONTH=1)
 
 WORKDIR=`pwd`
 
-STOCKDIR="$SHAREDELMER"  #- restart, output directory
+STOCKDIR="$GEN6035_CCCSCRATCHDIR"  #- restart, output directory
 
-INPUTDIR="${SHAREDELMER}/input/nemo_${CONFIG}"  #- input directory
+INPUTDIR="${GEN6035_CCCWORKDIR}/input/nemo_${CONFIG}"  #- input directory
 
 GLOBAL_SIM='OPM026'  # ORCA simulation used for BDY, runoff and sss restoring
 BDYDIR="${INPUTDIR}/BDY_${GLOBAL_SIM}"  #- input directory for BDYs
@@ -53,15 +55,13 @@ RNFDIR="${INPUTDIR}/RNF_${GLOBAL_SIM}"  #- input directory for runoff relaxation
 TOPO="BedMachineAntarctica-2020-10-08"  # to use domain_cfg_${CONFPAR}_${TOPO}.nc
 
 #- Netcdf library for small fortran scripts (not for NEMO)
-#export NC_INC='-I/opt/software/occigen/libraries/netcdf/4.4.0_fortran-4.4.2/hdf5/1.8.17/intel/17.0/openmpi/intel/2.0.1/include'
-#export NC_LIB='-L/opt/software/occigen/libraries/netcdf/4.4.0_fortran-4.4.2/hdf5/1.8.17/intel/17.0/openmpi/intel/2.0.1/lib -lnetcdf -lnetcdff'
 export NC_INC="-I`nc-config --includedir`"
 export NC_LIB=`nc-config --flibs`
 
-NEMOdir="${SHAREDELMER}/models/nemo_v4_trunk" # NEMO model directory
-XIOSdir="${SHAREDELMER}/models/xios_trunk" # XIOS directory
+NEMOdir="${GEN6035_CCCWORKDIR}/models/nemo_4.2.0" # NEMO model directory
+XIOSdir="${GEN6035_CCCWORKDIR}/models/xios_trunk" # XIOS directory
 
-FORCINGdir="${SHAREDSCRATCHDIR}/FORCING_SETS/JRA55" # Atmospheric forcing
+FORCINGdir="${GEN6035_ALL_CCCWORKDIR}/MODEL_INPUTS/NEMO/FORCINGS_SETS/JRA55" # Atmospheric forcing
 
 NZOOM=0  # nb of agrif nests (0 if no agrif nest)
 
