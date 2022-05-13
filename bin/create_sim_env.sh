@@ -74,7 +74,7 @@ do
 done
 
 # Put correct batch header :
-cat header_$HOST > tmp
+cat ${TEMP_NEMO_DIR}/template_run/header_$HOST > tmp
 cat run_nemo.sh |sed -e "s/<HEADER>//g" >> tmp
 mv tmp run_nemo.sh
 
