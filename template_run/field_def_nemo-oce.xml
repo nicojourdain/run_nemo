@@ -134,7 +134,6 @@ that are available in the tidal-forcing implementation (see
     <field id="sssgrad2"    long_name="square of module of surface salinity gradient"    unit="1e-6/m2"  grid_ref="grid_T_2D_inner"/>
     <field id="ke"          long_name="kinetic energy"          standard_name="specific_kinetic_energy_of_sea_water"   unit="m2/s2"  grid_ref="grid_T_3D" />
     <field id="ke_int"      long_name="vertical integration of kinetic energy"   unit="m3/s2"  grid_ref="grid_T_2D_inner" />
-    <field id="salt2c"      long_name="Salt content vertically integrated"       unit="1e-3*kg/m2" />
 
     <!-- t-eddy viscosity coefficients (ldfdyn) -->
     <field id="ahmt_2d"      long_name=" surface t-eddy viscosity coefficient"   unit="m2/s or m4/s"                      />
@@ -178,8 +177,8 @@ that are available in the tidal-forcing implementation (see
     <field id="mldr10_1max"  long_name="Max of Mixed Layer Depth (dsigma = 0.01 wrt 10m)"   field_ref="mldr10_1"   operation="maximum"                                                                          />
     <field id="mldr10_1min"  long_name="Min of Mixed Layer Depth (dsigma = 0.01 wrt 10m)"   field_ref="mldr10_1"   operation="minimum"                                                                          />
     <field id="heatc"        long_name="Heat content vertically integrated"                 standard_name="integral_of_sea_water_potential_temperature_wrt_depth_expressed_as_heat_content"   unit="J/m2"      grid_ref="grid_T_2D_inner" />
-    <field id="saltc"        long_name="Salt content vertically integrated"                                                                                                                   unit="1e-3.m"    grid_ref="grid_T_2D_inner" />
-    <field id="saltc2"       long_name="square of Salt content vertically integrated"                                                                                                         unit="1e-6.m2"   grid_ref="grid_T_2D_inner" />
+    <field id="saltc"        long_name="Salt content vertically integrated"                                                                                                                   unit="PSU*kg/m2"    grid_ref="grid_T_2D_inner" />
+    <field id="salt2c"       long_name="square of Salt content vertically integrated"                                                                                                         unit="PSU2*kg/m2"   grid_ref="grid_T_2D_inner" />
 
     <!-- EOS -->
     <field id="alpha"        long_name="thermal expansion"                                                         unit="degC-1" grid_ref="grid_T_3D" />

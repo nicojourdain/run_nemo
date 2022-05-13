@@ -200,6 +200,12 @@
       <!-- rheology convergence tests -->
       <field id="uice_cvg"   long_name="sea ice velocity convergence"      standard_name="sea_ice_velocity_convergence"      unit="m/s" />
 
+      <!-- vp rheology convergence tests -->
+      <field id="velo_res" long_name="sea ice velocity residual"                        standard_name="sea_ice_velocity_residual"         unit="N/m2" />
+      <field id="velo_ero" long_name="sea ice velocity error last outer iteration"      standard_name="sea_ice_velocity_outer_error"      unit="m/s" />
+      <field id="uice_eri" long_name="uice velocity error last inner iteration"         standard_name="sea_ice_u_velocity_inner_error"    unit="m/s" />
+      <field id="vice_eri" long_name="vice velocity error last inner iteration"         standard_name="sea_ice_v_velocity_inner_error"    unit="m/s" />
+
       <!-- ================= -->
       <!-- Add-ons for SIMIP -->
       <!-- ================= -->
@@ -429,7 +435,7 @@
       <field field_ref="sheastr"          name="sheastr" />
       <field field_ref="sig1_pnorm"       name="sig1_pnorm"/>
       <field field_ref="sig2_pnorm"       name="sig2_pnorm"/>
-      <field field_ref="icedlt"           name="sidelta" />
+      <field field_ref="icedlt"           name="sidelt" />
 
       <!-- heat fluxes -->
       <field field_ref="qt_oce_ai"        name="qt_oce_ai"  />

@@ -7,7 +7,7 @@
 <!-- $id$ -->
     <variable_definition>
     <!-- Year of time origin for NetCDF files; defaults to 1800 -->
-       <variable id="ref_year" type="int"   > 1900 </variable>
+       <variable id="ref_year" type="int"   > 1800 </variable>
        <variable id="rho0"     type="float" > 1026.0 </variable>
        <variable id="cpocean"  type="float" > 3991.86795711963 </variable>
        <variable id="convSpsu" type="float" > 0.99530670233846  </variable>
@@ -17,11 +17,11 @@
     </variable_definition>
 <!-- Fields definition -->
     <field_definition src="./field_def_nemo-oce.xml"/>    <!--  NEMO ocean dynamics     -->
-    <field_definition src="./field_def_nemo-ice.xml"/>
+    <field_definition src="./field_def_nemo-ice.xml"/>    <!--  NEMO sea-ice model      -->
 
 <!-- Files definition -->
     <file_definition src="./file_def_nemo-oce.xml"/>     <!--  NEMO ocean dynamics      -->
-    <file_definition src="./file_def_nemo-ice.xml"/>
+    <file_definition src="./file_def_nemo-ice.xml"/>     <!--  NEMO sea-ice model       -->
     <!-- 
 ============================================================================================================
 = grid definition = = DO NOT CHANGE =
