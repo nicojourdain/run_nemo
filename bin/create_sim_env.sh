@@ -11,6 +11,18 @@ fi
 CONFIG=$1
 CASE=$2
 
+if [ `hostname -d |grep occigen |wc -c` -gt 0 ]; then
+  HOST='occigen'
+elif [ `hostname -d |grep irene |wc -c` -gt 0 ]; then
+  HOST='irene'
+else
+  echo '~!@#$%^&* ERROR : you need to define header for this machine'
+  echo "`hostname -d` not defined (only occigen and irene available)"
+  echo '>>>>>>>>>>>> STOP !!!'
+  exit
+fi
+echo "Host is $HOST: choosing appropriate headers."
+
 ## 1- Prepare running scripts
 
 if [ -d run/nemo_${CONFIG}_${CASE} ]; then
@@ -60,6 +72,11 @@ do
   fi
 
 done
+
+# Put correct batch header :
+cat header_$HOST > tmp
+cat run_nemo.sh |sed -e "s/<HEADER>//g" >> tmp
+mv tmp run_nemo.sh
 
 #mv run/nemo_${CONFIG}_${CASE}/namelist_nemo-oce_GENERIC run/nemo_${CONFIG}_${CASE}/namelist_nemo-oce_GENERIC_${CONFIG}
 #mv run/nemo_${CONFIG}_${CASE}/namelist_nemo-ice_GENERIC run/nemo_${CONFIG}_${CASE}/namelist_nemo-ice_GENERIC_${CONFIG}

@@ -1,13 +1,4 @@
-#!/bin/bash
-#SBATCH -C BDW28
-#SBATCH --nodes=14
-#SBATCH --ntasks=392
-#SBATCH --ntasks-per-node=28
-#SBATCH --threads-per-core=1
-#SBATCH -J run_<config>_<case>
-#SBATCH -e run_nemo.e%j
-#SBATCH -o run_nemo.o%j
-#SBATCH --time=06:19:00
+<HEADER>
 
 date
 
