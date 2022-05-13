@@ -14,7 +14,7 @@ CASE=$2
 ## 1- Prepare running scripts
 
 if [ -d run/nemo_${CONFIG}_${CASE} ]; then
-  echo "~!@#$%& ERROR: run/nemo_${CONFIG}_${CASE} already exist >>> delete or change config/case names"
+  echo "~!@#$%& ERROR: run/nemo_${CONFIG}_${CASE} already exists >>> delete or change config/case names"
   exit
 fi
 mkdir run/nemo_${CONFIG}_${CASE}
@@ -61,8 +61,8 @@ do
 
 done
 
-mv run/nemo_${CONFIG}_${CASE}/namelist_nemo-oce_GENERIC run/nemo_${CONFIG}_${CASE}/namelist_nemo-oce_GENERIC_${CONFIG}
-mv run/nemo_${CONFIG}_${CASE}/namelist_nemo-ice_GENERIC run/nemo_${CONFIG}_${CASE}/namelist_nemo-ice_GENERIC_${CONFIG}
+#mv run/nemo_${CONFIG}_${CASE}/namelist_nemo-oce_GENERIC run/nemo_${CONFIG}_${CASE}/namelist_nemo-oce_GENERIC_${CONFIG}
+#mv run/nemo_${CONFIG}_${CASE}/namelist_nemo-ice_GENERIC run/nemo_${CONFIG}_${CASE}/namelist_nemo-ice_GENERIC_${CONFIG}
 
 ## 2- Prepare postprocessing scripts
 

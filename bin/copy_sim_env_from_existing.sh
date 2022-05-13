@@ -59,10 +59,10 @@ cp -p run/nemo_${CONFIG_OLD}_${CASE_OLD}/*.sh run/nemo_${CONFIG_NEW}_${CASE_NEW}
 rm -f run/nemo_${CONFIG_NEW}_${CASE_NEW}/compress_nemo_[0-9]*sh
 cp -p run/nemo_${CONFIG_OLD}_${CASE_OLD}/*GENERIC* run/nemo_${CONFIG_NEW}_${CASE_NEW}/.
 
-if [ ! ${CONFIG_OLD} == ${CONFIG_NEW} ]; then
-  mv run/nemo_${CONFIG_NEW}_${CASE_NEW}/namelist_nemo-oce_GENERIC_${CONFIG_OLD} run/nemo_${CONFIG_NEW}_${CASE_NEW}/namelist_nemo-oce_GENERIC_${CONFIG_NEW}
-  mv run/nemo_${CONFIG_NEW}_${CASE_NEW}/namelist_nemo-ice_GENERIC_${CONFIG_OLD} run/nemo_${CONFIG_NEW}_${CASE_NEW}/namelist_nemo-ice_GENERIC_${CONFIG_NEW}
-fi
+#if [ ! ${CONFIG_OLD} == ${CONFIG_NEW} ]; then
+#  mv run/nemo_${CONFIG_NEW}_${CASE_NEW}/namelist_nemo-oce_GENERIC_${CONFIG_OLD} run/nemo_${CONFIG_NEW}_${CASE_NEW}/namelist_nemo-oce_GENERIC_${CONFIG_NEW}
+#  mv run/nemo_${CONFIG_NEW}_${CASE_NEW}/namelist_nemo-ice_GENERIC_${CONFIG_OLD} run/nemo_${CONFIG_NEW}_${CASE_NEW}/namelist_nemo-ice_GENERIC_${CONFIG_NEW}
+#fi
 
 for file in run/nemo_${CONFIG_OLD}_${CASE_OLD}/run_nemo*sh
 do
