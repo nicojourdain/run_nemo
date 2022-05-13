@@ -18,7 +18,7 @@ CONFPAR=$CONFIG #- IF NO NEST SHOULD BE EQUAL TO $CONFIG
                 #  IF NESTS, SHOULD BE THE ABSOLUTE PARENT CONFIG NAME
                 #  (e.g. CONFPAR="trop075" when CONFIG="trop075_nest025")
 
-CONFEXE='AMU'   # only for nemo.exe
+CONFEXE='WED025'   # only for nemo.exe
 
 CASE='<case>' # should not be too long [>15 char.] otherwise, NEMO file names are affected
 
@@ -39,7 +39,8 @@ OUTPUT_FREQ='1d' # = '1d' for daily-mean outputs
                  # = '5d' for 5-day-mean outputs (only for BYMONTH=0)
                  # = '1m' for monthly-mean outputs (only for BYMONTH=1)
                  # = '1d1m' for both daily-mean and monthly-mean outputs (only for BYMONTH=1)
-                 # = '5d1y' for both 5-day-mean and yearly-mean outputs (only for BYMONTH=1)
+                 # = '5d1y' for both 5-day-mean and yearly-mean outputs (only for BYMONTH=0)
+                 # = '5d1m1y' for both 5-day-mean and yearly-mean outputs (only for BYMONTH=0)
 
 WORKDIR=`pwd`
 
@@ -108,27 +109,19 @@ ln -s ${XIOSdir}/bin/xios_server.exe
 
 rm -f file_def_nemo-oce.xml file_def_nemo-ice.xml
 if [ $BYMONTH -eq 1 ]; then
-  if [ $OUTPUT_FREQ == '1d1m' ]; then
-    ln -s -v file_def_nemo-oce_monthly_daily.xml file_def_nemo-oce.xml
-    ln -s -v file_def_nemo-ice_monthly_daily.xml file_def_nemo-ice.xml
-  elif [ $OUTPUT_FREQ == '1m' ]; then
-    ln -s -v file_def_nemo-oce_monthly.xml file_def_nemo-oce.xml
-    ln -s -v file_def_nemo-ice_monthly.xml file_def_nemo-ice.xml
-  elif [ $OUTPUT_FREQ == '1d' ]; then
-    ln -s -v file_def_nemo-oce_daily.xml file_def_nemo-oce.xml
-    ln -s -v file_def_nemo-ice_daily.xml file_def_nemo-ice.xml
+  if [ $OUTPUT_FREQ == '1d1m' ] || [ $OUTPUT_FREQ == '1m' ] || [ $OUTPUT_FREQ == '1d' ]; then
+    ln -s -v file_def_nemo-oce_${OUTPUT_FREQ}.xml file_def_nemo-oce.xml
+    ln -s -v file_def_nemo-ice_${OUTPUT_FREQ}.xml file_def_nemo-ice.xml
   else
     echo '~!@#%^&* wrong value of OUTPUT_FREQ >>>>>>>>>> Stop !!'
-    date
     exit
   fi
 else
-  if [ $OUTPUT_FREQ == '1d' ]; then
-    ln -s -v file_def_nemo-oce_daily.xml file_def_nemo-oce.xml
-    ln -s -v file_def_nemo-ice_daily.xml file_def_nemo-ice.xml
+  if [ $OUTPUT_FREQ == '1d' ] || [ $OUTPUT_FREQ == '5d' ] || [ $OUTPUT_FREQ == '5d1y' ] || [ $OUTPUT_FREQ == '5d1m1y' ]; then
+    ln -s -v file_def_nemo-oce_${OUTPUT_FREQ}.xml file_def_nemo-oce.xml
+    ln -s -v file_def_nemo-ice_${OUTPUT_FREQ}.xml file_def_nemo-ice.xml
   else
     echo '~!@#%^&* wrong value of OUTPUT_FREQ >>>>>>>>>> Stop !!'
-    date
     exit
   fi
 fi
