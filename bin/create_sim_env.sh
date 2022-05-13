@@ -46,7 +46,7 @@ do
       sed -e "s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/${file}_${CONFIG} > run/nemo_${CONFIG}_${CASE}/${file}
       chmod +x run/nemo_${CONFIG}_${CASE}/${file}
     else
-      cp -p ${TEMP_NEMO_DIR}/template_run/${file}_${CONFIG} run/nemo_${CONFIG}_${CASE}
+      cp -p ${TEMP_NEMO_DIR}/template_run/${file}_${CONFIG} run/nemo_${CONFIG}_${CASE}/${file}
     fi
     echo "Copying template_run/${file}_${CONFIG}"
   else
