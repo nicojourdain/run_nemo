@@ -179,7 +179,7 @@ fi
 
 #####
 # adjust nb of days to finish at the end of the year
-ISLEAP=`grep nn_leapy namelist_nemo_GENERIC_${CONFIG} | awk '{print $3}'`
+ISLEAP=`grep nn_leapy namelist_nemo-oce_GENERIC | awk '{print $3}'`
 if [ $BYMONTH -eq 0 ]; then
 if [ ! -f calculate_end_date ]; then
   ifort -o calculate_end_date calculate_end_date.f90
@@ -225,7 +225,7 @@ else
 fi
 
 ##-- calculate corresponding number of time steps for NEMO:
-RN_DT=`grep "rn_Dt " namelist_nemo_GENERIC_${CONFPAR} |grep 'dynamics' |grep 'step' |cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"`
+RN_DT=`grep "rn_Dt " namelist_nemo-oce_GENERIC |grep 'dynamics' |grep 'step' |cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"`
 NIT000=`echo "$NITENDM1 + 1" | bc`
 NITEND=`echo "$NITENDM1 + ${NDAYS} * 86400 / ${RN_DT}" | bc`
 
@@ -256,10 +256,10 @@ echo "Editing namelist..."
 rm -f namelist_ref namelist_cfg
 
 if [ $NRUN -gt 1 ] || [ $CONFIG == "trop075" ]; then
-  sed -e "s#<RESTNEM>#.true.#g"  namelist_nemo_GENERIC_${CONFPAR} > namelist_ref
+  sed -e "s#<RESTNEM>#.true.#g"  namelist_nemo-oce_GENERIC > namelist_ref
   RST=1
 else
-  sed -e "s#<RESTNEM>#.false.#g" namelist_nemo_GENERIC_${CONFPAR} > namelist_ref
+  sed -e "s#<RESTNEM>#.false.#g" namelist_nemo-oce_GENERIC > namelist_ref
   RST=0
 fi
 
@@ -272,7 +272,7 @@ else
   mv -f tmp namelist_ref
 fi
 
-IS_ISCPL=`grep ln_isfcpl namelist_nemo_GENERIC_${CONFIG} | awk '{print $3}' |sed -e "s/\.//g"`
+IS_ISCPL=`grep ln_isfcpl namelist_nemo-oce_GENERIC | awk '{print $3}' |sed -e "s/\.//g"`
 if [ $IS_ISCPL == 'true' ]; then
   echo "WARNING : enabling the ice shelf geometry to move (ln_isfcpl=true) !!!"
 fi
@@ -288,10 +288,10 @@ do
   echo "Editing ${iZOOM}_namelist..."
   rm -f ${iZOOM}_namelist_ref ${iZOOM}_namelist_cfg
   if [ $NRUN -gt 1 ] || [ $CONFIG == "trop075" ]; then
-    sed -e "s#<RESTNEM>#.true.#g"  ${iZOOM}_namelist_nemo_GENERIC_${CONFPAR} > ${iZOOM}_namelist_ref
+    sed -e "s#<RESTNEM>#.true.#g"  ${iZOOM}_namelist_nemo-oce_GENERIC > ${iZOOM}_namelist_ref
     RST=1
   else
-    sed -e "s#<RESTNEM>#.false.#g" ${iZOOM}_namelist_nemo_GENERIC_${CONFPAR} > ${iZOOM}_namelist_ref
+    sed -e "s#<RESTNEM>#.false.#g" ${iZOOM}_namelist_nemo-oce_GENERIC > ${iZOOM}_namelist_ref
     RST=0
   fi
   ##- Specific treatment for TROP075's restart/initial state:
@@ -304,7 +304,7 @@ do
   fi
   ##- calculate initial and last time step for the child domains :
   ##-- calculate corresponding number of time steps for NEMO:
-  RN_DT_ZOOM=`grep "rn_Dt " ${iZOOM}_namelist_nemo_GENERIC_${CONFIG} |cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"`
+  RN_DT_ZOOM=`grep "rn_Dt " ${iZOOM}_namelist_nemo-oce_GENERIC |cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"`
   NIT000_ZOOM=`echo "( ${NITENDM1} * ${RN_DT} / ${RN_DT_ZOOM} ) + 1" | bc`
   NITEND_ZOOM=`echo "( ${NITENDM1} * ${RN_DT} / ${RN_DT_ZOOM} ) + ${NDAYS} * 86400 / ${RN_DT_ZOOM}" | bc`
   ##--
@@ -314,7 +314,7 @@ do
 done
 
 rm -f namelist_ice_ref namelist_ice_cfg
-cp -p namelist_ice_nemo_GENERIC_${CONFPAR} namelist_ice_ref
+cp -p namelist_nemo-ice_GENERIC namelist_ice_ref
 ln -s namelist_ice_ref namelist_ice_cfg
 
 #############################################################
@@ -458,7 +458,7 @@ do
 done
 
 ## TIDES :
-for HARM in `grep sn_tide_cnames namelist_nemo_GENERIC_${CONFIG} | awk '{print $3}' |sed -e "s/'//g"`
+for HARM in `grep sn_tide_cnames namelist_nemo-oce_GENERIC | awk '{print $3}' |sed -e "s/'//g"`
 do
   ln -s -v ${INPUTDIR}/BDY_TIDES/bdytide_${CONFIG}_${HARM}_grid_T.nc bdytide_${HARM}_grid_T.nc
   ln -s -v ${INPUTDIR}/BDY_TIDES/bdytide_${CONFIG}_${HARM}_grid_U.nc bdytide_${HARM}_grid_U.nc
