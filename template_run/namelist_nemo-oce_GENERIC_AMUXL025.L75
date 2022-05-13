@@ -50,7 +50,7 @@
       cn_ocerst_indir = "."         !  directory from which to read input ocean restarts
       cn_ocerst_out   = "restart"   !  suffix of ocean restart name (output)
       cn_ocerst_outdir = "."        !  directory in which to write output ocean restarts
-   nn_istate   =       1   !  output the initial state (1) or not (0)
+   nn_istate   =       0   !  output the initial state (1) or not (0)
    ln_rst_list = .false.   !  output restarts at list of times using nn_stocklist (T) or at set frequency with nn_stock (F)
    nn_stock    =       0   !  used only if ln_rst_list = F: output restart freqeuncy (modulo referenced to 1)
       !                          !    =  0 force to write restart files only at the end of the run
@@ -71,7 +71,7 @@
 !-----------------------------------------------------------------------
    ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
    !
-   rn_Dt       =    2.     !  time step for the dynamics and tracer
+   rn_Dt       = 1350.     !  time step for the dynamics and tracer
    rn_atfp     =    0.1    !  asselin time filter parameter
    !
    ln_crs      = .false.   !  Logical switch for coarsening module      (T => fill namcrs)
@@ -211,7 +211,7 @@
       !                    !  (control sea-ice & iceberg model call)
                      ! Type of air-sea fluxes
    ln_usr      = .false.   !  user defined formulation                  (T => check usrdef_sbc)
-   ln_flx      = .false.   !  flux formulation                          (T => fill namsbc_flx )
+   ln_flx      = .false.  !  flux formulation                          (T => fill namsbc_flx )
    ln_blk      = .true.    !  Bulk formulation                          (T => fill namsbc_blk )
    ln_abl      = .false.   !  ABL  formulation                          (T => fill namsbc_abl )
       !              ! Type of coupling (Ocean/Ice/Atmosphere) :
@@ -229,7 +229,7 @@
       !                    !  =F levitating ice (no pressure, mass and salt exchanges)
                      ! Misc. options of sbc :
    ln_traqsr   = .true.    !  Light penetration in the ocean            (T => fill namtra_qsr)
-   ln_dm2dc    = .false.   !  daily mean to diurnal cycle on short wave
+   ln_dm2dc    = .true.    !  daily mean to diurnal cycle on short wave
    ln_ssr      = .false.   !  Sea Surface Restoring on T and/or S       (T => fill namsbc_ssr)
    nn_fwb      = 0         !  FreshWater Budget: =0 unchecked
       !                    !     =1 global mean of e-p-r set to zero at each time step
@@ -247,11 +247,11 @@
    !___________!_________________________!___________________!___________!_____________!________!___________!__________________!__________!_______________!
    !           !  file name              ! frequency (hours) ! variable  ! time interp.!  clim  ! 'yearly'/ ! weights filename ! rotation ! land/sea mask !
    !           !                         !  (if <0  months)  !   name    !   (logical) !  (T/F) ! 'monthly' !                  ! pairing  !    filename   !
-   sn_utau     = 'utau'                  ,        24.        , 'utau'    , .false.     , .false., 'yearly'  , ''               , ''       , ''
-   sn_vtau     = 'vtau'                  ,        24.        , 'vtau'    , .false.     , .false., 'yearly'  , ''               , ''       , ''
-   sn_qtot     = 'qtot'                  ,        24.        , 'qtot'    , .false.     , .false., 'yearly'  , ''               , ''       , ''
-   sn_qsr      = 'qsr'                   ,        24.        , 'qsr'     , .false.     , .false., 'yearly'  , ''               , ''       , ''
-   sn_emp      = 'emp'                   ,        24.        , 'emp'     , .false.     , .false., 'yearly'  , ''               , ''       , ''
+   sn_utau     = 'zero'                  ,       -12.        , 'zero'    , .false.     , .true. , 'yearly'  , ''               , ''       , ''
+   sn_vtau     = 'zero'                  ,       -12.        , 'zero'    , .false.     , .true. , 'yearly'  , ''               , ''       , ''
+   sn_qtot     = 'zero'                  ,       -12.        , 'zero'    , .false.     , .true. , 'yearly'  , ''               , ''       , ''
+   sn_qsr      = 'zero'                  ,       -12.        , 'zero'    , .false.     , .true. , 'yearly'  , ''               , ''       , ''
+   sn_emp      = 'zero'                  ,       -12.        , 'zero'    , .false.     , .true. , 'yearly'  , ''               , ''       , ''
 /
 !-----------------------------------------------------------------------
 &namsbc_blk    !   namsbc_blk  generic Bulk formula          (ln_blk =T)
@@ -260,7 +260,7 @@
    ln_NCAR      = .true.     ! "NCAR"      algorithm   (Large and Yeager 2008)
    ln_COARE_3p0 = .false.    ! "COARE 3.0" algorithm   (Fairall et al. 2003)
    ln_COARE_3p6 = .false.    ! "COARE 3.6" algorithm   (Edson et al. 2013)
-   ln_ECMWF     = .false.    ! "ECMWF"     algorithm   (IFS cycle 45r1)
+   ln_ECMWF     = .false.     ! "ECMWF"     algorithm   (IFS cycle 45r1)
    ln_ANDREAS   = .false.    ! "ANDREAS"   algorithm   (Andreas et al. 2015)
       rn_zqt       =  2.     !  Air temperature & humidity reference height (m)
       rn_zu        = 10.     !  Wind vector reference height (m)
@@ -268,8 +268,8 @@
       ln_skin_cs   = .false. !  use the cool-skin parameterization  => use at least nn_iter_algo > 10
       ln_skin_wl   = .false. !  use the warm-layer parameterization => use at least nn_iter_algo > 10
    !
-   rn_pfac    = 1.          !  multipl. factor for precipitation (total & snow)
-   rn_efac    = 1.          !  multipl. factor for evaporation (0. or 1.)
+   rn_pfac    = 1.000000000000 !  multipl. factor for precipitation (total & snow)  !! ERA5: 0.27777778 = 1000/3600 ( m/h -> kg.m^-2.s^-1 )
+   rn_efac    = 1.             !  multipl. factor for evaporation (0. or 1.)
    !
    ln_crt_fbk = .false.     !  Add surface current feedback to the wind stress (Renault et al. 2020, doi: 10.1029/2019MS001715)
          rn_stau_a = -2.9e-3   !     Alpha from eq. 10: Stau = Alpha * Wnd + Beta
@@ -290,23 +290,35 @@
    ln_Cx_ice_LG15  = .false.  !  (Lupkes & Gryanik 2015)
    !
    cn_dir      = './'      !  root directory for the bulk data location
-   !___________!_________________________!___________________!___________!_____________!________!___________!__________________________!__________!_______________!
-   !           !  file name              ! frequency (hours) ! variable  ! time interp.!  clim  ! 'yearly'/ !       weights filename   ! rotation ! land/sea mask !
-   !           !                         !  (if <0  months)  !   name    !   (logical) !  (T/F) ! 'monthly' !                          ! pairing  !    filename   !
-   sn_wndi     = 'drowned_uas_JRA55'     ,         3.        ,  'uas'    ,    .true.   , .false. , 'yearly'  , 'w_bicubic.nc'          , 'Uwnd'   ,  ''
-   sn_wndj     = 'drowned_vas_JRA55'     ,         3.        ,  'vas'    ,    .true.   , .false. , 'yearly'  , 'w_bicubic.nc'          , 'Vwnd'   ,  ''
-   sn_qsr      = 'drowned_rsds_JRA55'    ,         3.        ,  'rsds'   ,    .true.   , .false. , 'yearly'  , 'w_bilin.nc'            ,   ''     ,  ''
-   sn_qlw      = 'drowned_rlds_JRA55'    ,         3.        ,  'rlds'   ,    .true.   , .false. , 'yearly'  , 'w_bilin.nc'            ,   ''     ,  ''
-   sn_tair     = 'drowned_tas_JRA55'     ,         3.        ,  'tas'    ,    .true.   , .false. , 'yearly'  , 'w_bilin.nc'            ,   ''     ,  ''
-   sn_humi     = 'drowned_huss_JRA55'    ,         3.        ,  'huss'   ,    .true.   , .false. , 'yearly'  , 'w_bilin.nc'            ,   ''     ,  ''
-   sn_prec     = 'drowned_tprecip_JRA55' ,         3.        ,  'tprecip',    .true.   , .false. , 'yearly'  , 'w_bilin.nc'            ,   ''     ,  ''
-   sn_snow     = 'drowned_prsn_JRA55'    ,         3.        ,  'prsn'   ,    .true.   , .false. , 'yearly'  , 'w_bilin.nc'            ,   ''     ,  ''
-   sn_slp      = 'drowned_psl_JRA55'     ,         3.        ,  'psl'    ,    .true.   , .false. , 'yearly'  , 'w_bilin.nc'            ,   ''     ,  ''
-   sn_uoatm    = 'NOT USED'              ,         6.        , 'UOATM'   ,   .false.   , .true. , 'yearly'  ,  'w_bilin.nc'            , 'Uoceatm',  ''
-   sn_voatm    = 'NOT USED'              ,         6.        , 'VOATM'   ,   .false.   , .true. , 'yearly'  ,  'w_bilin.nc'            , 'Voceatm',  ''
-   sn_cc       = 'NOT USED'              ,        24.        , 'CC'      ,   .false.   , .true. , 'yearly'  ,  'w_bilin.nc'            ,   ''     ,  ''
-   sn_hpgi     = 'NOT USED'              ,        24.        , 'uhpg'    ,   .false.   , .false., 'monthly' ,  'w_bilin.nc'            ,  'UG'    ,  ''
-   sn_hpgj     = 'NOT USED'              ,        24.        , 'vhpg'    ,   .false.   , .false., 'monthly' ,  'w_bilin.nc'            ,  'VG'    ,  ''
+   !___________!_________________________!___________________!___________!_____________!________!___________!________________!__________!_______________!
+   !           !  file name              ! frequency (hours) ! variable  ! time interp.!  clim  ! 'yearly'/ !  weights       ! rotation ! land/sea mask !
+   !           !                         !  (if <0  months)  !   name    !   (logical) !  (T/F) ! 'monthly' !  filename      ! pairing  !    filename   !
+   !--
+   sn_wndi =    'drowned_uas_JRA55'     ,          3        ,  'uas'    ,    .true.    , .false. , 'yearly' , 'w_bicubic.nc' ,  'U1'    ,  ''
+   sn_wndj =    'drowned_vas_JRA55'     ,          3        ,  'vas'    ,    .true.    , .false. , 'yearly' , 'w_bicubic.nc' ,  'V1'    ,  ''
+   sn_qsr  =    'drowned_rsds_JRA55_1d' ,         24        ,  'rsds'   ,    .false.   , .false. , 'yearly' , 'w_bilin.nc'   ,   ''     ,  ''
+   sn_qlw  =    'drowned_rlds_JRA55'    ,          3        ,  'rlds'   ,    .false.   , .false. , 'yearly' , 'w_bilin.nc'   ,   ''     ,  ''
+   sn_tair =    'drowned_tas_JRA55'     ,          3        ,  'tas'    ,    .true.    , .false. , 'yearly' , 'w_bilin.nc'   ,   ''     ,  ''
+   sn_humi =    'drowned_huss_JRA55'    ,          3        ,  'huss'   ,    .true.    , .false. , 'yearly' , 'w_bilin.nc'   ,   ''     ,  ''
+   sn_prec =    'drowned_tprecip_JRA55' ,          3        ,  'tprecip',    .true.    , .false. , 'yearly' , 'w_bilin.nc'   ,   ''     ,  ''
+   sn_snow =    'drowned_prsn_JRA55'    ,          3        ,  'prsn'   ,    .true.    , .false. , 'yearly' , 'w_bilin.nc'   ,   ''     ,  ''
+   sn_slp  =    'drowned_psl_JRA55'     ,          3        ,  'psl'    ,    .true.    , .false. , 'yearly' , 'w_bilin.nc'   ,   ''     ,  ''
+   !--
+   !sn_wndi     = 'u10_ERA5_AMU'          ,          1.       ,  'u10'    ,    .true.   , .false. , 'yearly' ,  'w_bicubic.nc', 'Uwnd'   ,  ''
+   !sn_wndj     = 'v10_ERA5_AMU'          ,          1.       ,  'v10'    ,    .true.   , .false. , 'yearly' ,  'w_bicubic.nc', 'Vwnd'   ,  ''
+   !sn_qsr      = 'ssrd_ERA5_drowned_AMU' ,          1.       ,  'ssrd'   ,    .false.  , .false. , 'yearly' ,  'w_bilin.nc'  ,   ''     ,  ''
+   !sn_qlw      = 'strd_ERA5_drowned_AMU' ,          1.       ,  'strd'   ,    .false.  , .false. , 'yearly' ,  'w_bilin.nc'  ,   ''     ,  ''
+   !sn_tair     = 't2m_ERA5_drowned_AMU'  ,          1.       ,  't2m'    ,    .true.   , .false. , 'yearly' ,  'w_bilin.nc'  ,   ''     ,  ''
+   !sn_humi     = 'q2m_ERA5_drowned_AMU'  ,          1.       ,  'q2m'    ,    .true.   , .false. , 'yearly' ,  'w_bilin.nc'  ,   ''     ,  ''
+   !sn_prec     = 'tp_ERA5_drowned_AMU'   ,          1.       ,  'tp'     ,    .true.   , .false. , 'yearly' ,  'w_bilin.nc'  ,   ''     ,  ''
+   !sn_snow     = 'sf_ERA5_drowned_AMU'   ,          1.       ,  'sf'     ,    .true.   , .false. , 'yearly' ,  'w_bilin.nc'  ,   ''     ,  ''
+   !sn_slp      = 'sp_ERA5_drowned_AMU'   ,          1.       ,  'sp'     ,    .true.   , .false. , 'yearly' ,  'w_bilin.nc'  ,   ''     ,  ''
+   !--
+   sn_uoatm    = 'NOT USED'              ,         6.        , 'UOATM'   ,   .false.   , .true. , 'yearly'  ,  'w_bilin.nc'  , 'Uoceatm',  ''
+   sn_voatm    = 'NOT USED'              ,         6.        , 'VOATM'   ,   .false.   , .true. , 'yearly'  ,  'w_bilin.nc'  , 'Voceatm',  ''
+   sn_cc       = 'NOT USED'              ,        24.        , 'CC'      ,   .false.   , .true. , 'yearly'  ,  'w_bilin.nc'  ,   ''     ,  ''
+   sn_hpgi     = 'NOT USED'              ,        24.        , 'uhpg'    ,   .false.   , .false., 'monthly' ,  'w_bilin.nc'  ,  'UG'    ,  ''
+   sn_hpgj     = 'NOT USED'              ,        24.        , 'vhpg'    ,   .false.   , .false., 'monthly' ,  'w_bilin.nc'  ,  'VG'    ,  ''
 /
 !-----------------------------------------------------------------------
 &namsbc_abl    !   Atmospheric Boundary Layer formulation           (ln_abl = T)
@@ -713,8 +725,8 @@
          ln_read_load  = .false.               ! Or read load potential from file
             cn_tide_load = 'tide_LOAD_grid_T.nc'  ! filename for load potential
             !
-      ln_tide_ramp  = .false.                 !  Use linear ramp for tides at startup
-         rn_tide_ramp_dt = 10.                !  ramp duration in days
+      ln_tide_ramp  = .false.               !  Use linear ramp for tides at startup
+         rn_tide_ramp_dt = 0.               !  ramp duration in days
       sn_tide_cnames(1) =  'M2'     !  name of tidal constituent
       sn_tide_cnames(2) =  'S2'
       sn_tide_cnames(3) =  'N2'
@@ -726,7 +738,7 @@
 !-----------------------------------------------------------------------
 &nambdy        !  unstructured open boundaries                          (default: OFF)
 !-----------------------------------------------------------------------
-   ln_bdy         = .true.    !  Use unstructured open boundaries
+   ln_bdy         = .true.   !  Use unstructured open boundaries
    nb_bdy         = 1         !  number of open boundary sets
    ln_coords_file = .true.    !  =T : read bdy coordinates from file
       cn_coords_file = 'coordinates_bdy.nc' !  bdy coordinates files
@@ -989,7 +1001,7 @@
 !-----------------------------------------------------------------------
 &namtra_eiv    !   eddy induced velocity param.                         (default: OFF)
 !-----------------------------------------------------------------------
-   ln_ldfeiv   = .false.   ! use eddy induced velocity parameterization
+   ln_ldfeiv   = .true.   ! use eddy induced velocity parameterization
       !
       !                        !  Coefficients:
       nn_aei_ijk_t    = 21          !  space/time variation of eddy coefficient:
@@ -1040,6 +1052,10 @@
    rn_lf_cutoff  =  5.0             !  cutoff frequency for low-pass filter  [days]
    rn_zdef_max   =  0.9             !  maximum fractional e3t deformation
    ln_vvl_dbg    = .false.          !  debug prints    (T/F)
+   nn_vvl_interp =  2               !  interpolation method of scale factor anomalies at U/V/F points
+                                    !  =0 linear even at the bottom (old)
+                                    !  =1 linear with bottom correction
+                                    !  =2 proportionnal to scale factors at rest ("qco" like)
 /
 !-----------------------------------------------------------------------
 &namdyn_adv    !   formulation of the momentum advection                (default: NO selection)
@@ -1190,12 +1206,12 @@
       rn_hsbfr =    1.6       !  heat/salt buoyancy flux ratio
    !
    !                       ! gravity wave-driven vertical mixing
-   ln_zdfiwm   = .true.       ! internal wave-induced mixing            (T =>   fill namzdf_iwm)
+   ln_zdfiwm   = .false.      ! internal wave-induced mixing            (T =>   fill namzdf_iwm)
    ln_zdfswm   = .false.      ! surface  wave-induced mixing            (T => ln_wave=ln_sdw=T )
    !
    !                       ! coefficients
-   rn_avm0     =   1.4e-6     !  vertical eddy viscosity   [m2/s]       (background Kz if ln_zdfcst=F)
-   rn_avt0     =   1.4e-7     !  vertical eddy diffusivity [m2/s]       (background Kz if ln_zdfcst=F)
+   rn_avm0     =   1.2e-4     !  vertical eddy viscosity   [m2/s]       (background Kz if ln_zdfcst=F)
+   rn_avt0     =   2.0e-6     !  vertical eddy diffusivity [m2/s]       (background Kz if ln_zdfcst=F)
    nn_avb      =    0         !  profile for background avt & avm (=1) or not (=0)
    nn_havtb    =    0         !  horizontal shape for avtb (=1) or not (=0)
 /
@@ -1339,19 +1355,19 @@
 !-----------------------------------------------------------------------
 &namzdf_iwm    !    internal wave-driven mixing parameterization        (ln_zdfiwm =T)
 !-----------------------------------------------------------------------
-   nn_zpyc     = 2         !  pycnocline-intensified dissipation scales as N (=1) or N^2 (=2)
-   ln_mevar    = .true.    !  variable (T) or constant (F) mixing efficiency
+   ln_mevar    = .false.    !  variable (T) or constant (F) mixing efficiency
    ln_tsdiff   = .true.    !  account for differential T/S mixing (T) or not (F)
 
-   cn_dir      = './'      !  root directory for the iwm data location                                                                           
-   !___________!_________________________!___________________!____________________!_____________!________!___________!__________!__________!_______________!
-   !           !  file name              ! frequency (hours) !          variable  ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
-   !           !                         !  (if <0  months)  !           name     !   (logical) !  (T/F) ! 'monthly' ! filename ! pairing  !    filename   !
-   sn_mpb      = 'zdfiwm.nc'             , -12.              , 'mixing_power_bot' ,   .false.   , .true. , 'yearly'  ,      ''  ,   ''     , ''
-   sn_mpp      = 'zdfiwm.nc'             , -12.              , 'mixing_power_pyc' ,   .false.   , .true. , 'yearly'  ,      ''  ,   ''     , ''
-   sn_mpc      = 'zdfiwm.nc'             , -12.              , 'mixing_power_cri' ,   .false.   , .true. , 'yearly'  ,      ''  ,   ''     , ''
-   sn_dsb      = 'zdfiwm.nc'             , -12.              , 'decay_scale_bot'  ,   .false.   , .true. , 'yearly'  ,      ''  ,   ''     , ''
-   sn_dsc      = 'zdfiwm.nc'             , -12.              , 'decay_scale_cri'  ,   .false.   , .true. , 'yearly'  ,      ''  ,   ''     , ''
+   cn_dir      = './'      !  root directory for the iwm data location
+   !___________!_________________________!___________________!___________!_____________!________!___________!__________________!__________!_______________!
+   !           !  file name              ! frequency (hours) ! variable  ! time interp.!  clim  ! 'yearly'/ ! weights filename ! rotation ! land/sea mask !
+   !           !                         !  (if <0  months)  !   name    !   (logical) !  (T/F) ! 'monthly' !                  ! pairing  !    filename   !
+   sn_mpb      = 'NOT USED'              , -12.              , 'power_bot' , .false.  , .true. , 'yearly' , '' , ''  , ''
+   sn_mpc      = 'NOT USED'              , -12.              , 'power_cri' , .false.  , .true. , 'yearly' , '' , ''  , ''
+   sn_mpn      = 'NOT USED'              , -12.              , 'power_nsq' , .false.  , .true. , 'yearly' , '' , ''  , ''
+   sn_mps      = 'NOT USED'              , -12.              , 'power_sho' , .false.  , .true. , 'yearly' , '' , ''  , ''
+   sn_dsb      = 'NOT USED'              , -12.              , 'scale_bot' , .false.  , .true. , 'yearly' , '' , ''  , ''
+   sn_dsc      = 'NOT USED'              , -12.              , 'scale_cri' , .false.  , .true. , 'yearly' , '' , ''  , ''
 /
 !!======================================================================
 !!                  ***  Diagnostics namelists  ***                   !!
@@ -1549,8 +1565,8 @@
 !-----------------------------------------------------------------------
    sn_cfctl%l_runstat = .TRUE.    ! switches and which areas produce reports with the proc integer settings.
    sn_cfctl%l_trcstat = .FALSE.   ! The default settings for the proc integers should ensure
-   sn_cfctl%l_oceout  = .FALSE.   ! that  all areas report.
-   sn_cfctl%l_layout  = .FALSE.   !
+   sn_cfctl%l_oceout  = .FALSE.    ! that  all areas report.
+   sn_cfctl%l_layout  = .FALSE.    !
    sn_cfctl%l_prtctl  = .FALSE.   !
    sn_cfctl%l_prttrc  = .FALSE.   !
    sn_cfctl%l_oasout  = .FALSE.   !

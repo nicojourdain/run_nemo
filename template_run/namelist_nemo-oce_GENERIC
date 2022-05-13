@@ -1040,6 +1040,10 @@
    rn_lf_cutoff  =  5.0             !  cutoff frequency for low-pass filter  [days]
    rn_zdef_max   =  0.9             !  maximum fractional e3t deformation
    ln_vvl_dbg    = .false.          !  debug prints    (T/F)
+   nn_vvl_interp =  2               !  interpolation method of scale factor anomalies at U/V/F points
+                                    !  =0 linear even at the bottom (old)
+                                    !  =1 linear with bottom correction
+                                    !  =2 proportionnal to scale factors at rest ("qco" like)
 /
 !-----------------------------------------------------------------------
 &namdyn_adv    !   formulation of the momentum advection                (default: NO selection)
@@ -1339,19 +1343,19 @@
 !-----------------------------------------------------------------------
 &namzdf_iwm    !    internal wave-driven mixing parameterization        (ln_zdfiwm =T)
 !-----------------------------------------------------------------------
-   nn_zpyc     = 1         !  pycnocline-intensified dissipation scales as N (=1) or N^2 (=2)
-   ln_mevar    = .true.    !  variable (T) or constant (F) mixing efficiency
+   ln_mevar    = .false.    !  variable (T) or constant (F) mixing efficiency
    ln_tsdiff   = .true.    !  account for differential T/S mixing (T) or not (F)
 
-   cn_dir      = './'      !  root directory for the iwm data location                                                                           
-   !___________!_________________________!___________________!____________________!_____________!________!___________!__________!__________!_______________!
-   !           !  file name              ! frequency (hours) !          variable  ! time interp.!  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
-   !           !                         !  (if <0  months)  !           name     !   (logical) !  (T/F) ! 'monthly' ! filename ! pairing  !    filename   !
-   sn_mpb      = 'zdfiwm.nc'             , -12.              , 'mixing_power_bot' ,   .false.   , .true. , 'yearly'  ,      ''  ,   ''     , ''
-   sn_mpp      = 'zdfiwm.nc'             , -12.              , 'mixing_power_pyc' ,   .false.   , .true. , 'yearly'  ,      ''  ,   ''     , ''
-   sn_mpc      = 'zdfiwm.nc'             , -12.              , 'mixing_power_cri' ,   .false.   , .true. , 'yearly'  ,      ''  ,   ''     , ''
-   sn_dsb      = 'zdfiwm.nc'             , -12.              , 'decay_scale_bot'  ,   .false.   , .true. , 'yearly'  ,      ''  ,   ''     , ''
-   sn_dsc      = 'zdfiwm.nc'             , -12.              , 'decay_scale_cri'  ,   .false.   , .true. , 'yearly'  ,      ''  ,   ''     , ''
+   cn_dir      = './'      !  root directory for the iwm data location
+   !___________!_________________________!___________________!___________!_____________!________!___________!__________________!__________!_______________!
+   !           !  file name              ! frequency (hours) ! variable  ! time interp.!  clim  ! 'yearly'/ ! weights filename ! rotation ! land/sea mask !
+   !           !                         !  (if <0  months)  !   name    !   (logical) !  (T/F) ! 'monthly' !                  ! pairing  !    filename   !
+   sn_mpb      = 'NOT USED'              , -12.              , 'power_bot' , .false.  , .true. , 'yearly' , '' , ''  , ''
+   sn_mpc      = 'NOT USED'              , -12.              , 'power_cri' , .false.  , .true. , 'yearly' , '' , ''  , ''
+   sn_mpn      = 'NOT USED'              , -12.              , 'power_nsq' , .false.  , .true. , 'yearly' , '' , ''  , ''
+   sn_mps      = 'NOT USED'              , -12.              , 'power_sho' , .false.  , .true. , 'yearly' , '' , ''  , ''
+   sn_dsb      = 'NOT USED'              , -12.              , 'scale_bot' , .false.  , .true. , 'yearly' , '' , ''  , ''
+   sn_dsc      = 'NOT USED'              , -12.              , 'scale_cri' , .false.  , .true. , 'yearly' , '' , ''  , ''
 /
 !!======================================================================
 !!                  ***  Diagnostics namelists  ***                   !!
