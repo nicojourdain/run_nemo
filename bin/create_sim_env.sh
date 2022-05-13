@@ -21,7 +21,9 @@ else
   echo '>>>>>>>>>>>> STOP !!!'
   exit
 fi
-echo "Host is $HOST: choosing appropriate headers."
+echo "###################################################"
+echo "  Host is $HOST: choosing appropriate headers "
+echo "###################################################"
 
 ## 1- Prepare running scripts
 
