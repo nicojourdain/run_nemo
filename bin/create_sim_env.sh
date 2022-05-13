@@ -26,16 +26,16 @@ context_nemo.xml \
 domain_def_nemo.xml \
 field_def_nemo-ice.xml \
 field_def_nemo-oce.xml \
-file_def_nemo-ice_daily.xml \
-file_def_nemo-ice_monthly_daily.xml \
-file_def_nemo-ice_monthly.xml \
-file_def_nemo-oce_daily.xml \
-file_def_nemo-oce_monthly_daily.xml \
-file_def_nemo-oce_monthly.xml \
+file_def_nemo-ice_1d.xml \
+file_def_nemo-ice_1d1m.xml \
+file_def_nemo-ice_1m.xml \
+file_def_nemo-oce_1d.xml \
+file_def_nemo-oce_1d1m.xml \
+file_def_nemo-oce_1m.xml \
 grid_def_nemo.xml \
 iodef.xml \
-namelist_ice_nemo_GENERIC \
-namelist_nemo_GENERIC \
+namelist_nemo-ice_GENERIC \
+namelist_nemo-oce_GENERIC \
 rebuild.sh \
 run_nemo.sh
 do
@@ -61,8 +61,8 @@ do
 
 done
 
-mv run/nemo_${CONFIG}_${CASE}/namelist_nemo_GENERIC run/nemo_${CONFIG}_${CASE}/namelist_nemo_GENERIC_${CONFIG}
-mv run/nemo_${CONFIG}_${CASE}/namelist_ice_nemo_GENERIC run/nemo_${CONFIG}_${CASE}/namelist_ice_nemo_GENERIC_${CONFIG}
+mv run/nemo_${CONFIG}_${CASE}/namelist_nemo-oce_GENERIC run/nemo_${CONFIG}_${CASE}/namelist_nemo-oce_GENERIC_${CONFIG}
+mv run/nemo_${CONFIG}_${CASE}/namelist_nemo-ice_GENERIC run/nemo_${CONFIG}_${CASE}/namelist_nemo-ice_GENERIC_${CONFIG}
 
 ## 2- Prepare postprocessing scripts
 
