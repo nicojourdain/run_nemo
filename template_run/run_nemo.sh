@@ -11,6 +11,8 @@ ulimit -s unlimited
 #=================================================================================
 #=================================================================================
 
+MACHINE='<host>' ## Either 'occigen' or 'irene'
+
 CONFIG='<config>'  ## FULL CONFIG NAME (e.g. "AMUXL025.L75", "trop075", "trop075_nest025")
                        ## NB: THIS NAME SHOULD NOT START WITH A NUMBER
 
@@ -634,9 +636,16 @@ for iter in `seq 1 $(( SLURM_NTASKS / NB_TASK_PER_NODE ))`; do
    echo "${NB_TASK_XIOS_PER_NODE}-1 bash -c xios_server.exe" >> app.conf
 done
 
-ccc_mprun -f app.conf
+if [ $MACHINE == 'occigen' ]; then
+  srun --mpi=pmi2 --multi-prog  ./app.conf
+elif [ $MACHINE == 'irene' ]; then
+  ccc_mprun -f app.conf
+else
+  echo "ERROR : $MACHINE is an unknown host for this script: adapt srun/ccc_mprun command line."
+  echo "   >>>>>>>>>>> STOP !!!!"
+  exit
+fi
 
-#
 #rm -f app.conf
 #echo "0-$(( NB_TASK_XIOS - 1 )) xios_server.exe"          >  app.conf
 #echo "${NB_TASK_XIOS}-$(( SLURM_NTASKS - 1 )) nemo.exe "  >> app.conf
@@ -644,8 +653,6 @@ ccc_mprun -f app.conf
 #srun --mpi=pmi2  -m cyclic \
 #    --cpu_bind=map_cpu:0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23\
 #    --multi-prog  ./app.conf
-
-#srun --mpi=pmi2 --multi-prog  ./app.conf
 
 echo " "
 date

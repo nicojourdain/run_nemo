@@ -64,7 +64,7 @@ do
   if [ -f ${TEMP_NEMO_DIR}/template_run/${file}_${CONFIG} ]; then
     if [ $file == 'run_nemo.sh' ]; then
       cat ${TEMP_NEMO_DIR}/template_run/header_$HOST > run/nemo_${CONFIG}_${CASE}/${file}
-      sed -e "s#<HEADER>##g ; s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/${file}_${CONFIG} >> run/nemo_${CONFIG}_${CASE}/${file}
+      sed -e "s#<HEADER>##g ; s#<host>#${HOST}#g ; s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/${file}_${CONFIG} >> run/nemo_${CONFIG}_${CASE}/${file}
       chmod +x run/nemo_${CONFIG}_${CASE}/${file}
     else
       cp -p ${TEMP_NEMO_DIR}/template_run/${file}_${CONFIG} run/nemo_${CONFIG}_${CASE}/${file}
@@ -73,7 +73,7 @@ do
   else
     if [ $file == 'run_nemo.sh' ]; then
       cat ${TEMP_NEMO_DIR}/template_run/header_$HOST > run/nemo_${CONFIG}_${CASE}/${file}
-      sed -e "s#<HEADER>##g ; s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/${file} >> run/nemo_${CONFIG}_${CASE}/${file}
+      sed -e "s#<HEADER>##g ; s#<host>#${HOST}#g ; s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/${file} >> run/nemo_${CONFIG}_${CASE}/${file}
       chmod +x run/nemo_${CONFIG}_${CASE}/${file}
     else
       cp -p ${TEMP_NEMO_DIR}/template_run/${file} run/nemo_${CONFIG}_${CASE}/.
