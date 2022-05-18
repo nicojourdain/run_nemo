@@ -55,6 +55,8 @@ RNFDIR="${INPUTDIR}/RNF_${GLOBAL_SIM}"  #- input directory for runoff relaxation
 
 TOPO="BedMachineAntarctica-2020-10-08"  # to use domain_cfg_${CONFPAR}_${TOPO}.nc
 
+FORCINGdir="${GEN6035_ALL_CCCWORKDIR}/MODEL_INPUTS/NEMO/FORCINGS_SETS/JRA55" # Atmospheric forcing
+
 #- Netcdf library for small fortran scripts (not for NEMO)
 export NC_INC="-I`nc-config --includedir`"
 export NC_LIB=`nc-config --flibs`
@@ -62,11 +64,10 @@ export NC_LIB=`nc-config --flibs`
 NEMOdir="${GEN6035_CCCWORKDIR}/models/nemo_4.2.0" # NEMO model directory
 XIOSdir="${GEN6035_CCCWORKDIR}/models/xios_trunk" # XIOS directory
 
-FORCINGdir="${GEN6035_ALL_CCCWORKDIR}/MODEL_INPUTS/NEMO/FORCINGS_SETS/JRA55" # Atmospheric forcing
-
 NZOOM=0  # nb of agrif nests (0 if no agrif nest)
 
-NB_NPROC_XIOS_PER_NODE=2 # Number of core used per xios on each node (should typically be in the 1-3 range).
+NB_TASK_PER_NODE=128    # 128 (TGCC), 28 (OCCIGEN)
+NB_TASK_XIOS_PER_NODE=2 # Number of core used per xios on each node (should typically be in the 1-3 range).
 
 #=================================================================================
 #=================================================================================
@@ -81,18 +82,19 @@ if [ ! `basename $PWDDIR` == nemo_${CONFIG}_${CASE} ]; then
  exit
 fi
 
-export NB_NODES=`echo "${SLURM_NTASKS} / 24" |bc`
-export NB_NPROC_IOS=$(( NB_NODES * NB_NPROC_XIOS_PER_NODE ))
-export NB_NPROC=$(( SLURM_NTASKS - NB_NPROC_IOS ))
+export NB_NODES=$(( SLURM_NTASKS / NB_TASK_PER_NODE ))
+export NB_TASK_NEMO_PER_NODE=$(( NB_TASK_PER_NODE - NB_TASK_XIOS_PER_NODE ))
+export NB_TASK_XIOS=$(( NB_NODES * NB_TASK_XIOS_PER_NODE ))
+export NB_TASK_NEMO=$(( SLURM_NTASKS - NB_TASK_XIOS ))
 
-# { unset initiaux 
-unset    OMPI_MCA_ess
-#
-unset    OMPI_MCA_pml
-unset    OMPI_MCA_mtl
-unset    OMPI_MCA_mtl_mxm_np 
-unset    OMPI_MCA_pubsub  
-# }
+## { unset initiaux 
+#unset    OMPI_MCA_ess
+##
+#unset    OMPI_MCA_pml
+#unset    OMPI_MCA_mtl
+#unset    OMPI_MCA_mtl_mxm_np 
+#unset    OMPI_MCA_pubsub  
+## }
 
 ############################################################
 ##-- create links to executables :
@@ -231,7 +233,7 @@ echo "*   to      ${DAYf}/${MONTHf}/${YEARf}              "
 echo "*   i.e. step $NIT000 to $NITEND (for mother grid)  "
 echo "*                                                   "
 echo "*   total number of tasks >>>>> ${SLURM_NTASKS}     "
-echo "*   number of xios tasks  >>>>> ${NB_NPROC_IOS}     "
+echo "*   number of xios tasks  >>>>> ${NB_TASK_XIOS}     "
 echo "*                                                   "
 echo "****************************************************"
 echo " "
@@ -623,16 +625,25 @@ echo " "
 #=======================================================================================
 #=======================================================================================
 
-rm -f app.conf
-echo "0-$(( NB_NPROC_IOS - 1 )) xios_server.exe"          >  app.conf
-echo "${NB_NPROC_IOS}-$(( SLURM_NTASKS - 1 )) nemo.exe "  >> app.conf
-
 date
 echo " "
 
-srun --mpi=pmi2  -m cyclic \
-    --cpu_bind=map_cpu:0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23\
-    --multi-prog  ./app.conf
+rm -f app.conf
+for iter in `seq 1 $(( SLURM_NTASKS / NB_TASK_PER_NODE ))`; do
+   echo "${NB_TASK_NEMO_PER_NODE}-1 bash -c nemo.exe"        >> app.conf
+   echo "${NB_TASK_XIOS_PER_NODE}-1 bash -c xios_server.exe" >> app.conf
+done
+
+ccc_mprun -f app.conf
+
+#
+#rm -f app.conf
+#echo "0-$(( NB_TASK_XIOS - 1 )) xios_server.exe"          >  app.conf
+#echo "${NB_TASK_XIOS}-$(( SLURM_NTASKS - 1 )) nemo.exe "  >> app.conf
+#
+#srun --mpi=pmi2  -m cyclic \
+#    --cpu_bind=map_cpu:0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23\
+#    --multi-prog  ./app.conf
 
 #srun --mpi=pmi2 --multi-prog  ./app.conf
 
@@ -694,7 +705,7 @@ do
 done
 
 ## used to know how many multiple output files are created (in xios mode "multiple_file")
-echo "xxx $NB_NPROC_IOS xios_server.exe xxx" > OUTPUT_${NRUN}/app.copy
+echo "xxx $NB_TASK_XIOS xios_server.exe xxx" > OUTPUT_${NRUN}/app.copy
 
 ##########################################################
 ##-- prepare next run if every little thing went all right
