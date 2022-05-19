@@ -1,0 +1,14 @@
+#!/bin/bash
+######################
+## IRENE   TGCC/CEA ##
+######################
+#MSUB -r export_nemo_<config>_<case>
+#MSUB -o export_nemo.o%j
+#MSUB -e export_nemo.e%j
+#MSUB -n 1
+#MSUB -x
+#MSUB -T 600 
+#MSUB -A gen6035
+#MSUB -q rome
+#MSUB -m store,work,scratch
+

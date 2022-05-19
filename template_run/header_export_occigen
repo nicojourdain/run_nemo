@@ -1,0 +1,13 @@
+#!/bin/bash
+######################
+## OCCIGEN    CINES ##
+######################
+#SBATCH -C BDW28
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --threads-per-core=1
+#SBATCH -J compress_NNNN
+#SBATCH -e compress_nemo_NNNN.e%j
+#SBATCH -o compress_nemo_NNNN.o%j
+#SBATCH --time=00:09:00

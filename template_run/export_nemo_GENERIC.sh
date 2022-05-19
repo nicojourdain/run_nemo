@@ -1,20 +1,9 @@
-#!/bin/bash
-#SBATCH -C BDW28
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --threads-per-core=1
-#SBATCH -J compress_NNNN
-#SBATCH -e compress_nemo_NNNN.e%j
-#SBATCH -o compress_nemo_NNNN.o%j
-#SBATCH --time=00:09:00
+<HEADER>
 
 set -x
-#ulimit -s unlimited
+ulimit -s unlimited
 
 #- Netcdf library for small fortran scripts (not for NEMO)
-#export NC_INC='-I /opt/software/libraries/netcdf/bullxmpi/netcdf-4.3.3-rc2/include -I /opt/software/libraries/netcdf/bullxmpi/netcdf-fortran-4.4.1-4.3.3-rc2/include'
-#export NC_LIB='-L /opt/software/libraries/netcdf/bullxmpi/netcdf-4.3.3-rc2/lib -lnetcdf -L /opt/software/libraries/netcdf/bullxmpi/netcdf-fortran-4.4.1-4.3.3-rc2/lib -lnetcdff'
 export NC_INC="-I`nc-config --includedir`"
 export NC_LIB=`nc-config --flibs`
 
@@ -45,7 +34,7 @@ date
 
 cd $WORKDIR/OUTPUT_${NRUN}
 
-MULTIPLE_FILE=`grep multiple_file ../iodef.xml  | wc -l`
+MULTIPLE_FILE=`grep multiple_file ../file_def_nemo-oce.xml  | wc -l`
 
 if [ $MULTIPLE_FILE -gt 0 ]; then
 
@@ -86,7 +75,7 @@ fi
 ##     outputs from new on going simulation )
 
 echo " "
-ls -1 *_[1-5][d-m]_*.nc
+ls -1 *_[1-5][d-y]_*.nc
 echo " "
 
 rm -f tmp.nc

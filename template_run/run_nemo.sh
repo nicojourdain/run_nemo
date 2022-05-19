@@ -315,14 +315,14 @@ cp -p namelist_nemo-ice_GENERIC namelist_ice_ref
 ln -s namelist_ice_ref namelist_ice_cfg
 
 #############################################################
-###-- prepare script that will be used to compress outputs :
+###-- prepare script that will be used to export outputs :
 
 STOCKDIR2=`echo $STOCKDIR |sed -e "s/\//\\\\\\\\\//g"`
 WORKDIR2=`echo $WORKDIR  |sed -e "s/\//\\\\\\\\\//g"`
 
-sed -e "s/CCCC/${CONFIG}/g ; s/cccc/${CONFPAR}/g ; s/OOOO/${CASE}/g ; s/SSSS/${STOCKDIR2}/g ; s/WWWW/${WORKDIR2}/g ; s/YYYY/${YEAR}/g ; s/NNNN/${NRUN}/g ; s/ZZZZ/${NZOOM}/g ; s/UUUU/${NITEND}/g" compress_nemo_GENERIC.sh > compress_nemo_${NRUN}.sh
+sed -e "s/CCCC/${CONFIG}/g ; s/cccc/${CONFPAR}/g ; s/OOOO/${CASE}/g ; s/SSSS/${STOCKDIR2}/g ; s/WWWW/${WORKDIR2}/g ; s/YYYY/${YEAR}/g ; s/NNNN/${NRUN}/g ; s/ZZZZ/${NZOOM}/g ; s/UUUU/${NITEND}/g" export_nemo_GENERIC.sh > export_nemo_${NRUN}.sh
 
-chmod +x compress_nemo_${NRUN}.sh
+chmod +x export_nemo_${NRUN}.sh
 
 #=======================================================================================
 #=======================================================================================
@@ -680,7 +680,7 @@ do
 done
 rm -f nam_rebuild_[0-9][0-9][0-9][0-9][0-9]
 
-##-- export and compress output files:
+##-- export output files:
 
 if [ ! -d OUTPUT_${NRUN} ]; then
   mkdir OUTPUT_${NRUN}
@@ -733,7 +733,11 @@ fi
 
 if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
 
-  sbatch ./compress_nemo_${NRUN}.sh
+  if [ $MACHINE == 'occigen' ]; then
+    sbatch ./export_nemo_${NRUN}.sh
+  elif [ $MACHINE == 'irene' ]; then
+    ccc_msub export_nemo_${NRUN}.sh
+  fi
 
   ##-- write last restart time step of mother grid in prod_nemo.db:
   LAST_RESTART_NIT=`ls -1 ${CONFIG}-${CASE}_*_restart_*.nc | tail -1 | sed -e "s/${CONFIG}-${CASE}//g" | cut -d '_' -f2`
@@ -852,7 +856,11 @@ fi
 ##########################################################
 ##-- launch next year of the experiment
 
-sbatch ./run_nemo.sh 
+if [ $MACHINE == 'occigen' ]; then
+  sbatch ./run_nemo.sh 
+elif [ $MACHINE == 'irene' ]; then
+  ccc_msub run_nemo.sh 
+fi
 
 echo " "
 date
