@@ -69,7 +69,7 @@ XIOSdir="${GEN6035_CCCWORKDIR}/models/xios_trunk" # XIOS directory
 NZOOM=0  # nb of agrif nests (0 if no agrif nest)
 
 NB_TASK_PER_NODE=128    # 128 (TGCC), 28 (OCCIGEN)
-NB_TASK_XIOS_PER_NODE=2 # Number of core used per xios on each node (should typically be in the 1-3 range).
+NB_TASK_XIOS_PER_NODE=4 # Number of core used per xios on each node (should typically be in the 1-3 range).
 
 #=================================================================================
 #=================================================================================
@@ -84,9 +84,9 @@ if [ ! `basename $PWDDIR` == nemo_${CONFIG}_${CASE} ]; then
  exit
 fi
 
-export NB_NODES=$(( SLURM_NTASKS / NB_TASK_PER_NODE ))
+export NB_NODES=`echo "$SLURM_NTASKS / $NB_TASK_PER_NODE" |bc`
 export NB_TASK_NEMO_PER_NODE=$(( NB_TASK_PER_NODE - NB_TASK_XIOS_PER_NODE ))
-export NB_TASK_XIOS=$(( NB_NODES * NB_TASK_XIOS_PER_NODE ))
+export NB_TASK_XIOS=`echo "$NB_NODES * $NB_TASK_XIOS_PER_NODE" |bc`
 export NB_TASK_NEMO=$(( SLURM_NTASKS - NB_TASK_XIOS ))
 
 ## { unset initiaux 
