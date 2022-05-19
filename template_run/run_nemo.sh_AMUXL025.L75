@@ -234,7 +234,7 @@ echo "*   to      ${DAYf}/${MONTHf}/${YEARf}              "
 echo "*   i.e. step $NIT000 to $NITEND (for mother grid)  "
 echo "*                                                   "
 echo "*   total number of tasks >>>>> ${SLURM_NTASKS}     "
-echo "*   number of xios tasks  >>>>> ${NB_NPROC_IOS}     "
+echo "*   number of xios tasks  >>>>> ${NB_TASK_XIOS}     "
 echo "*                                                   "
 echo "****************************************************"
 echo " "
@@ -720,7 +720,7 @@ do
 done
 
 ## used to know how many multiple output files are created (in xios mode "multiple_file")
-echo "xxx $NB_NPROC_IOS xios_server.exe xxx" > OUTPUT_${NRUN}/app.copy
+echo "xxx $NB_TASK_XIOS xios_server.exe xxx" > OUTPUT_${NRUN}/app.copy
 
 ##########################################################
 ##-- prepare next run if every little thing went all right
