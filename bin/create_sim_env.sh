@@ -35,7 +35,7 @@ mkdir run/nemo_${CONFIG}_${CASE}
 
 for file in calculate_end_date.f90 \
 calculate_end_date_month.f90 \
-compress_nemo_GENERIC.sh \
+export_nemo_GENERIC.sh \
 context_nemo.xml \
 domain_def_nemo.xml \
 field_def_nemo-ice.xml \
@@ -66,7 +66,7 @@ do
       sed -e "s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/header_run_$HOST > run/nemo_${CONFIG}_${CASE}/${file}
       sed -e "s#<HEADER>##g ; s#<host>#${HOST}#g ; s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/${file}_${CONFIG} >> run/nemo_${CONFIG}_${CASE}/${file}
       chmod +x run/nemo_${CONFIG}_${CASE}/${file}
-    elif [ $file == 'export_nemo.sh' ]; then
+    elif [ $file == 'export_nemo_GENERIC.sh' ]; then
       sed -e "s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/header_export_$HOST > run/nemo_${CONFIG}_${CASE}/${file}
       sed -e "s#<HEADER>##g" ${TEMP_NEMO_DIR}/template_run/${file}_${CONFIG} >> run/nemo_${CONFIG}_${CASE}/${file}
       chmod +x run/nemo_${CONFIG}_${CASE}/${file}
@@ -79,7 +79,7 @@ do
       sed -e "s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/header_run_$HOST > run/nemo_${CONFIG}_${CASE}/${file}
       sed -e "s#<HEADER>##g ; s#<host>#${HOST}#g ; s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/${file} >> run/nemo_${CONFIG}_${CASE}/${file}
       chmod +x run/nemo_${CONFIG}_${CASE}/${file}
-    elif [ $file == 'export_nemo.sh' ]; then
+    elif [ $file == 'export_nemo_GENERIC.sh' ]; then
       sed -e "s#<config>#${CONFIG}#g ; s#<case>#${CASE}#g" ${TEMP_NEMO_DIR}/template_run/header_export_$HOST > run/nemo_${CONFIG}_${CASE}/${file}
       sed -e "s#<HEADER>##g" ${TEMP_NEMO_DIR}/template_run/${file} >> run/nemo_${CONFIG}_${CASE}/${file}
       chmod +x run/nemo_${CONFIG}_${CASE}/${file}
