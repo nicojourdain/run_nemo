@@ -586,8 +586,13 @@ if [ $RSTN == "true" ]; then
   fi
 else
   echo "Not in restart mode -> import initial T,S state"
-  ln -s -v ${INPUTDIR}/istate_TS_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc istate_TS.nc
-  ln -s -v ${INPUTDIR}/istate_sea_ice_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc  istate_sea_ice.nc
+  if [ -z $GLOBAL_SIM ]; then
+    ln -s -v ${INPUTDIR}/istate_TS_${CONFPAR}_y${Y0}m${M0}.nc istate_TS.nc
+    ln -s -v ${INPUTDIR}/istate_sea_ice_${CONFPAR}_y${Y0}m${M0}.nc  istate_sea_ice.nc
+  else
+    ln -s -v ${INPUTDIR}/istate_TS_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc istate_TS.nc
+    ln -s -v ${INPUTDIR}/istate_sea_ice_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc  istate_sea_ice.nc
+  fi
 fi
 
 for iZOOM in $(seq 1 ${NZOOM})
@@ -615,8 +620,13 @@ do
     fi
   else
     echo "Not in restart mode -> import initial T,S state for the zoom"
-    ln -s -v ${iZOOM}_istate_TS_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc ${iZOOM}_istate_TS_y${Y0}m${M0}.nc
-    ln -s -v ${iZOOM}_istate_sea_ice_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc  ${iZOOM}_istate_sea_ice_y${Y0}m${M0}.nc
+    if [ -z $GLOBAL_SIM ]; then
+      ln -s -v ${iZOOM}_istate_TS_${CONFPAR}_y${Y0}m${M0}.nc ${iZOOM}_istate_TS_y${Y0}m${M0}.nc
+      ln -s -v ${iZOOM}_istate_sea_ice_${CONFPAR}_y${Y0}m${M0}.nc  ${iZOOM}_istate_sea_ice_y${Y0}m${M0}.nc
+    else
+      ln -s -v ${iZOOM}_istate_TS_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc ${iZOOM}_istate_TS_y${Y0}m${M0}.nc
+      ln -s -v ${iZOOM}_istate_sea_ice_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc  ${iZOOM}_istate_sea_ice_y${Y0}m${M0}.nc
+    fi
   fi
 
 done
