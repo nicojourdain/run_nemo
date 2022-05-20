@@ -51,11 +51,13 @@ STOCKDIR="$GEN6035_CCCSCRATCHDIR"  #- restart, output directory
 INPUTDIR="${GEN6035_CCCWORKDIR}/input/nemo_${CONFIG}"  #- input directory
 
 GLOBAL_SIM='OPM026'  # ORCA simulation used for BDY, runoff and sss restoring
+                     # (also used in istate file names; define GLOBAL_SIM='' if not used)
 BDYDIR="${INPUTDIR}/BDY_${GLOBAL_SIM}"  #- input directory for BDYs
 SSSDIR="${INPUTDIR}/SSS_${GLOBAL_SIM}"  #- input directory for SSS relaxation (if any)
 RNFDIR="${INPUTDIR}/RNF_${GLOBAL_SIM}"  #- input directory for runoff relaxation (if any)
 
 TOPO="BedMachineAntarctica-2020-10-08"  # to use domain_cfg_${CONFPAR}_${TOPO}.nc
+                                        # define TOPO="" to use domain_cfg_${CONFPAR}.nc
 
 FORCINGdir="${GEN6035_ALL_CCCWORKDIR}/MODEL_INPUTS/NEMO/FORCINGS_SETS/JRA55" # Atmospheric forcing
 
@@ -361,7 +363,11 @@ if [ $CONFPAR == "trop075" ]; then
 fi
 
 rm -f domain_cfg.nc
-ln -s -v ${INPUTDIR}/domain_cfg_${CONFPAR}_${TOPO}.nc domain_cfg.nc
+if [ -z $TOPO ]; then
+  ln -s -v ${INPUTDIR}/domain_cfg_${CONFPAR}.nc domain_cfg.nc
+else
+  ln -s -v ${INPUTDIR}/domain_cfg_${CONFPAR}_${TOPO}.nc domain_cfg.nc
+fi
 
 rm -f chlorophyll.nc
 ln -s -v ${INPUTDIR}/chlorophyll_${CONFPAR}.nc chlorophyll.nc
