@@ -648,8 +648,8 @@ echo " "
 
 rm -f app.conf
 for iter in `seq 1 $(( SLURM_NTASKS / NB_TASK_PER_NODE ))`; do
-   echo "${NB_TASK_NEMO_PER_NODE}-1 bash -c nemo.exe"        >> app.conf
-   echo "${NB_TASK_XIOS_PER_NODE}-1 bash -c xios_server.exe" >> app.conf
+   echo "${NB_TASK_NEMO_PER_NODE}-1 ./nemo.exe"        >> app.conf
+   echo "${NB_TASK_XIOS_PER_NODE}-1 ./xios_server.exe" >> app.conf
 done
 
 if [ $MACHINE == 'occigen' ]; then
