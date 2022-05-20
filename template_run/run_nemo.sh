@@ -254,6 +254,7 @@ echo "Editing namelist..."
 
 rm -f namelist_ref namelist_cfg
 
+##- Start from restart file or at rest from initial T,S conditions:
 if [ $NRUN -gt 1 ] || [ $CONFIG == "trop075" ]; then
   sed -e "s#<RESTNEM>#.true.#g"  namelist_nemo-oce_GENERIC > namelist_ref
   RST=1
@@ -271,7 +272,8 @@ else
   mv -f tmp namelist_ref
 fi
 
-IS_ISCPL=`grep ln_isfcpl namelist_nemo-oce_GENERIC | awk '{print $3}' |sed -e "s/\.//g"`
+##- Ice Sheet Coupling:
+IS_ISCPL=`grep ln_isfcpl namelist_nemo-oce_GENERIC | grep -v ln_isfcpl_cons | awk '{print $3}' |sed -e "s/\.//g"`
 if [ $IS_ISCPL == 'true' ]; then
   echo "WARNING : enabling the ice shelf geometry to move (ln_isfcpl=true) !!!"
 fi
@@ -354,14 +356,15 @@ if [ $YEARp1 -lt 1000 ]; then
   YEARp1="0$YEARp1"
 fi
 
-##########
-##-- import files that are not time dependent if not already there
+#####################################################################
+##-- import files that are not time dependent if not already there :
 
 if [ $CONFPAR == "trop075" ]; then
   rm -f ahmcoef.nc
   ln -s -v ${INPUTDIR}/ahmcoef_${CONFPAR}.nc ahmcoef.nc
 fi
 
+##-- all geographical and grid characteristics:
 rm -f domain_cfg.nc
 if [ -z $TOPO ]; then
   ln -s -v ${INPUTDIR}/domain_cfg_${CONFPAR}.nc domain_cfg.nc
@@ -369,9 +372,14 @@ else
   ln -s -v ${INPUTDIR}/domain_cfg_${CONFPAR}_${TOPO}.nc domain_cfg.nc
 fi
 
-rm -f chlorophyll.nc
-ln -s -v ${INPUTDIR}/chlorophyll_${CONFPAR}.nc chlorophyll.nc
+##-- Chlorophyll Concentration (for vertical penetration of solar flux):
+IS_TRAQSR=`grep ln_traqsr namelist_cfg | grep '\.' | awk '{print $3}'`
+if [ $IS_TRAQSR == ".true." ]; then
+  rm -f chlorophyll.nc
+  ln -s -v ${INPUTDIR}/chlorophyll_${CONFPAR}.nc chlorophyll.nc
+fi
 
+##-- Liquid (and solid) runoff :
 IS_RNF=`grep " ln_rnf " namelist_cfg | grep '\.' | cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"`
 if [ $IS_RNF == ".true." ]; then
   IS_CLIM=`grep " sn_rnf " namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g"`
@@ -389,12 +397,14 @@ if [ $IS_RNF == ".true." ]; then
   fi
 fi
 
+##-- 3D T,S restoring:
 IS_TRADMP=`grep ln_tradmp namelist_cfg | grep '\.' | awk '{print $3}'`
 if [ $IS_TRADMP == ".true." ]; then
   rm -f resto.nc
   ln -s -v ${INPUTDIR}/resto_${CONFPAR}.nc resto.nc
 fi
 
+## Internal Wave Mixing:
 IS_ZDFIWM=`grep ln_zdfiwm namelist_cfg | grep '\.' | awk '{print $3}'`
 if [ $IS_ZDFIWM == ".true." ]; then
   rm -f zdfiwm.nc
@@ -409,8 +419,11 @@ do
   rm -f ${iZOOM}_domain_cfg.nc
   ln -s -v ${INPUTDIR}/${iZOOM}_domain_cfg_${CONFPAR}_${TOPO}.nc ${iZOOM}_domain_cfg.nc
 
-  rm -f ${iZOOM}_chlorophyll.nc
-  ln -s -v ${INPUTDIR}/${iZOOM}_chlorophyll_${CONFPAR}.nc ${iZOOM}_chlorophyll.nc
+  IS_TRAQSR=`grep ln_traqsr ${iZOOM}_namelist_cfg | grep '\.' | awk '{print $3}'`
+  if [ $IS_TRAQSR == ".true." ]; then
+    rm -f ${iZOOM}_chlorophyll.nc
+    ln -s -v ${INPUTDIR}/${iZOOM}_chlorophyll_${CONFPAR}.nc ${iZOOM}_chlorophyll.nc
+  fi
 
   IS_RNF=`grep " ln_rnf " ${iZOOM}_namelist_cfg | cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"`
   if [ $IS_RNF == ".true." ]; then
