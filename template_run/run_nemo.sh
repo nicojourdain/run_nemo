@@ -359,293 +359,253 @@ fi
 #####################################################################
 ##-- import files that are not time dependent if not already there :
 
-if [ $CONFPAR == "trop075" ]; then
-  rm -f ahmcoef.nc
-  ln -s -v ${INPUTDIR}/ahmcoef_${CONFPAR}.nc ahmcoef.nc
-fi
+# Function that tells if namelist variable (1st argument) is in 
+# a given namelist section (2nd arg.) for a given namelist (3rd arg.):
+get_value_in_namelist() {
+  sed -n "/^${2}/, /^\//p" $3 |grep $1 | cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"
+}
 
-##-- all geographical and grid characteristics:
-rm -f domain_cfg.nc
-if [ -z $TOPO ]; then
-  ln -s -v ${INPUTDIR}/domain_cfg_${CONFPAR}.nc domain_cfg.nc
-else
-  ln -s -v ${INPUTDIR}/domain_cfg_${CONFPAR}_${TOPO}.nc domain_cfg.nc
-fi
-
-##-- Chlorophyll Concentration (for vertical penetration of solar flux):
-IS_TRAQSR=`grep ln_traqsr namelist_cfg | grep '\.' | awk '{print $3}'`
-if [ $IS_TRAQSR == ".true." ]; then
-  rm -f chlorophyll.nc
-  ln -s -v ${INPUTDIR}/chlorophyll_${CONFPAR}.nc chlorophyll.nc
-fi
-
-##-- Liquid (and solid) runoff :
-IS_RNF=`grep " ln_rnf " namelist_cfg | grep '\.' | cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"`
-if [ $IS_RNF == ".true." ]; then
-  IS_CLIM=`grep " sn_rnf " namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g"`
-  if [ $IS_CLIM == ".true." ]; then
-    rm -f runoff.nc runoff_y????.nc
-    ln -s -v ${INPUTDIR}/runoff_${CONFPAR}.nc runoff.nc
-  else
-    for AN in $YEARm1 $YEAR $YEARp1
-    do
-      rm -f runoff.nc runoff_y${AN}.nc
-      if [ -f ${RNFDIR}/runoff_y${AN}_${CONFPAR}.nc ]; then 
-        ln -s -v ${RNFDIR}/runoff_y${AN}_${CONFPAR}.nc runoff_y${AN}.nc
-      fi
-    done
-  fi
-fi
-
-##-- 3D T,S restoring:
-IS_TRADMP=`grep ln_tradmp namelist_cfg | grep '\.' | awk '{print $3}'`
-if [ $IS_TRADMP == ".true." ]; then
-  rm -f resto.nc
-  ln -s -v ${INPUTDIR}/resto_${CONFPAR}.nc resto.nc
-fi
-
-## Internal Wave Mixing:
-IS_ZDFIWM=`grep ln_zdfiwm namelist_cfg | grep '\.' | awk '{print $3}'`
-if [ $IS_ZDFIWM == ".true." ]; then
-  rm -f zdfiwm.nc
-  ln -s -v ${INPUTDIR}/zdfiwm_${CONFPAR}.nc zdfiwm.nc
-fi
-
-# Same for AGRIF NESTS :
-
-for iZOOM in $(seq 1 ${NZOOM})
+# Loop over parent config (iZOOM=0) and AGRIF child domains (iZOOM>0) :
+for iZOOM in $(seq 0 ${NZOOM})
 do
 
-  rm -f ${iZOOM}_domain_cfg.nc
-  ln -s -v ${INPUTDIR}/${iZOOM}_domain_cfg_${CONFPAR}_${TOPO}.nc ${iZOOM}_domain_cfg.nc
-
-  IS_TRAQSR=`grep ln_traqsr ${iZOOM}_namelist_cfg | grep '\.' | awk '{print $3}'`
-  if [ $IS_TRAQSR == ".true." ]; then
-    rm -f ${iZOOM}_chlorophyll.nc
-    ln -s -v ${INPUTDIR}/${iZOOM}_chlorophyll_${CONFPAR}.nc ${iZOOM}_chlorophyll.nc
+  if [ $iZOOM -eq 0 ]; then
+    PREFIX=''
+  else
+    PREFIX="${iZOOM}_"
   fi
 
-  IS_RNF=`grep " ln_rnf " ${iZOOM}_namelist_cfg | cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"`
+  ##-- All geographical and grid characteristics:
+  rm -f ${PREFIX}domain_cfg.nc
+  if [ -z $TOPO ]; then
+    ln -s -v ${INPUTDIR}/${PREFIX}domain_cfg_${CONFPAR}.nc ${PREFIX}domain_cfg.nc
+  else
+    ln -s -v ${INPUTDIR}/${PREFIX}domain_cfg_${CONFPAR}_${TOPO}.nc ${PREFIX}domain_cfg.nc
+  fi
+  
+  ##-- Chlorophyll Concentration (for vertical penetration of solar flux):
+  IS_TRAQSR=`get_value_in_namelist 'ln_traqsr' '&namsbc' ${PREFIX}namelist_cfg`
+  if [ $IS_TRAQSR == ".true." ]; then
+    rm -f ${PREFIX}chlorophyll.nc
+    if [ -f ${INPUTDIR}/${PREFIX}chlorophyll_${CONFPAR}.nc ]; then
+      # use interpolated file :
+      ln -s -v ${INPUTDIR}/${PREFIX}chlorophyll_${CONFPAR}.nc ${PREFIX}chlorophyll.nc
+    else
+      # use weights :
+      WGT_QSR_FILE=`grep sn_chl ${PREFIX}namelist_cfg | grep '\.' | cut -d ',' -f7 |sed -e "s/'//g"`
+      if [ -f ${INPUTDIR}/${PREFIX}${WGT_QSR_FILE} ]; then
+        ln -s -v ${INPUTDIR}/${PREFIX}chlorophyll.nc
+        ln -s -v ${INPUTDIR}/${PREFIX}${WGT_QSR_FILE}
+      fi
+    fi
+  fi
+  
+  ##-- Geothermal Heat Flux :
+  IS_GEO1=`get_value_in_namelist 'ln_trabbc' '&nambbc' ${PREFIX}namelist_cfg`
+  IS_GEO2=`get_value_in_namelist 'nn_geoflx' '&nambbc' ${PREFIX}namelist_cfg`
+  if [ $IS_GEO1 == ".true." ] && [ $IS_GEO2 == "2" ]; then
+    rm -f ${PREFIX}geothermal_heating.nc
+    if [ -f ${INPUTDIR}/${PREFIX}geothermal_heating_${CONFPAR}.nc ]; then
+      # use interpolated file :
+      ln -s -v ${INPUTDIR}/${PREFIX}geothermal_heating_${CONFPAR}.nc ${PREFIX}geothermal_heating.nc
+    else
+      # use weights :
+      WGT_GEO_FILE=`grep sn_qgh ${PREFIX}namelist_cfg | grep '\.' | cut -d ',' -f7 |sed -e "s/'//g"`
+      if [ -f ${INPUTDIR}/${PREFIX}${WGT_GEO_FILE} ]; then
+        ln -s -v ${INPUTDIR}/${PREFIX}geothermal_heating.nc
+        ln -s -v ${INPUTDIR}/${PREFIX}${WGT_GEO_FILE}
+      fi
+    fi
+  fi
+  
+  ##-- Liquid (and solid) runoff :
+  IS_RNF=`get_value_in_namelist 'ln_rnf' '&namsbc' ${PREFIX}namelist_cfg`
   if [ $IS_RNF == ".true." ]; then
-    IS_CLIM=`grep " sn_rnf " ${iZOOM}_namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g"`
-    if [ $IS_CLIM == ".true" ]; then
-      rm -f ${iZOOM}_runoff.nc
-      ln -s -v ${RNFDIR}/${iZOOM}_runoff_${CONFPAR}.nc ${iZOOM}_runoff.nc
+    IS_CLIM=`grep " sn_rnf " ${PREFIX}namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g"`
+    if [ $IS_CLIM == ".true." ]; then
+      rm -f ${PREFIX}runoff.nc ${PREFIX}runoff_y????.nc
+      ln -s -v ${INPUTDIR}/${PREFIX}runoff_${CONFPAR}.nc ${PREFIX}runoff.nc
     else
       for AN in $YEARm1 $YEAR $YEARp1
       do
-        rm -f ${iZOOM}_runoff_y${AN}.nc
-        if [ -f ${RNFDIR}/RNF/${iZOOM}_runoff_y${AN}_${CONFPAR}.nc ]; then
-          ln -s -v ${RNFDIR}/RNF/${iZOOM}_runoff_y${AN}_${CONFPAR}.nc ${iZOOM}_runoff_y${AN}.nc
+        rm -f ${PREFIX}runoff.nc ${PREFIX}runoff_y${AN}.nc
+        if [ -f ${RNFDIR}/${PREFIX}runoff_y${AN}_${CONFPAR}.nc ]; then 
+          ln -s -v ${RNFDIR}/${PREFIX}runoff_y${AN}_${CONFPAR}.nc ${PREFIX}runoff_y${AN}.nc
         fi
       done
     fi
   fi
-
-  IS_TRADMP=`grep ln_tradmp ${iZOOM}_namelist_cfg | awk '{print $3}'`
+  
+  ##-- 3D T,S restoring :
+  IS_TRADMP=`get_value_in_namelist 'ln_tradmp' '&namtra_dmp' ${PREFIX}namelist_cfg`
   if [ $IS_TRADMP == ".true." ]; then
-    rm -f ${iZOOM}_resto.nc
-    ln -s -v ${INPUTDIR}/${iZOOM}_resto_${CONFPAR}.nc ${iZOOM}_resto.nc
+    rm -f ${PREFIX}resto.nc
+    ln -s -v ${INPUTDIR}/${PREFIX}resto_${CONFPAR}.nc ${PREFIX}resto.nc
   fi
-
-  IS_ZDFIWM=`grep ln_zdfiwm ${iZOOM}_namelist_cfg | awk '{print $3}'`
-  if [ $IS_ZDFIWM == ".true." ]; then
-    rm -f ${iZOOM}_zdfiwm.nc
-    ln -s -v ${INPUTDIR}/${iZOOM}_zdfiwm_${CONFPAR}.nc ${iZOOM}_zdfiwm.nc
+  
+  ##-- Internal Wave Mixing :
+  IS_IWM=`get_value_in_namelist 'ln_mevar' '&namzdf_iwm' ${PREFIX}namelist_cfg`
+  if [ $IS_IWM == ".true." ]; then
+   rm -f ${PREFIX}iwm.nc
+   ln -s -v ${INPUTDIR}/${PREFIX}iwm_${CONFIG}.nc ${PREFIX}iwm.nc
   fi
-
-done
-
-##########
-##-- import Boundary Conditions (BDYs) 
-
-rm -f coordinates_bdy.nc
-ln -s -v ${INPUTDIR}/coordinates_bdy_${CONFIG}.nc coordinates_bdy.nc
-
-for AN in $YEARm1 $YEAR $YEARp1
-do
-  for BDYNAM in bdyT_tra bdyU_u2d bdyU_u3d bdyV_u2d bdyV_u3d bdyT_ice bdyT_ssh
-  do
-    rm -f ${BDYNAM}_y${AN}.nc
-    if [ -f ${BDYDIR}/${BDYNAM}_y${AN}_${CONFIG}.nc ]; then
-      ln -s -v ${BDYDIR}/${BDYNAM}_y${AN}_${CONFIG}.nc ${BDYNAM}_y${AN}.nc
+  
+  ##-- Localy-boosted Bottom Friction :
+  IS_BFR_BOOST=`get_value_in_namelist 'ln_boost' '&namdrg_bot' ${PREFIX}namelist_cfg`
+  if [ $IS_BFR_BOOST == ".true." ]; then
+    rm -f ${PREFIX}bfr_coef.nc
+    ln -s -v ${INPUTDIR}/${PREFIX}bfr_${CONFIG}.nc ${PREFIX}bfr_coef.nc
+  fi
+  
+  ##-- Localy-boosted Top Friction :
+  IS_TFR_BOOST=`get_value_in_namelist 'ln_boost' '&namdrg_top' ${PREFIX}namelist_cfg`
+  if [ $IS_TFR_BOOST == ".true." ]; then
+    rm -f ${PREFIX}tfr_coef.nc
+    ln -s -v ${INPUTDIR}/${PREFIX}tfr_${CONFIG}.nc ${PREFIX}tfr_coef.nc
+  fi
+  
+  ##-- Localy-varying lateral friction (DRAKKAR only) :
+  IS_DRAK=`grep '&namlbc_drk' ${PREFIX}namelist_cfg |wc -l`
+  if [ $IS_DRAK -ne 0 ]; then
+    LS_SHLAT2D=`get_value_in_namelist 'ln_shlat2d' '&namlbc_drk' ${PREFIX}namelist_cfg`
+    if [ $LS_SHLAT2D == ".true." ]; then
+      rm -f ${PREFIX}shlat2d.nc
+      ln -s -v ${INPUTDIR}/${PREFIX}shlat_${CONFPAR}.nc ${PREFIX}shlat2d.nc
     fi
-  done
-done
+  fi
 
-## TIDES :
-for HARM in `grep sn_tide_cnames namelist_nemo-oce_GENERIC | awk '{print $3}' |sed -e "s/'//g"`
-do
-  ln -s -v ${INPUTDIR}/BDY_TIDES/bdytide_${CONFIG}_${HARM}_grid_T.nc bdytide_${HARM}_grid_T.nc
-  ln -s -v ${INPUTDIR}/BDY_TIDES/bdytide_${CONFIG}_${HARM}_grid_U.nc bdytide_${HARM}_grid_U.nc
-  ln -s -v ${INPUTDIR}/BDY_TIDES/bdytide_${CONFIG}_${HARM}_grid_V.nc bdytide_${HARM}_grid_V.nc
-done
+  ##########
+  ##-- import Boundary Conditions (BDYs) 
 
-##########
-##-- atmospheric forcing
+  IS_BDY=`get_value_in_namelist 'ln_bdy' '&nambdy' ${PREFIX}namelist_cfg` 
+  
+  if [ $IS_BDY == ".true." ]; then
 
-FORDTA=`basename $FORCINGdir`
-rm -f w_bilin.nc w_bicubic.nc
-ln -s -v ${INPUTDIR}/weights_bilin_${FORDTA}_${CONFIG}.nc  w_bilin.nc
-ln -s -v ${INPUTDIR}/weights_bicub_${FORDTA}_${CONFIG}.nc  w_bicubic.nc
-
-# The following only work if in thefollowing order: namsbc_clio, namsbc_core, namsbc_mfs
-IS_BLK=`grep " ln_blk " namelist_cfg | cut -d '=' -f2 | cut -d '!' -f1 |sed -e "s/ //g"`
-if [ $IS_BLK == ".true." ]; then
-  LINE_BLK=`grep -n namsbc_blk namelist_cfg | tail -1 | cut -d ':' -f1`
-  for NAMAT in sn_wndi sn_wndj sn_qsr sn_qlw sn_tair sn_humi sn_prec sn_snow sn_slp
-  do
-    ATM_FILE=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" namelist_cfg | cut -d "'" -f2 | grep -v \"${NAMAT}\" | head -1`
-    IS_CLIM=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" namelist_cfg | grep -v \"${NAMAT}\" | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
-    if [ $IS_CLIM == ".true." ]; then
-      rm -f ${ATM_FILE}.nc
-      if [ -f ${FORCINGdir}/${ATM_FILE}.nc ]; then
-        ln -s -v ${FORCINGdir}/${ATM_FILE}.nc
-      fi
-    else
-      for AN in  $YEARm1 $YEAR $YEARp1 
+    rm -f coordinates_bdy.nc
+    ln -s -v ${INPUTDIR}/coordinates_bdy_${CONFPAR}.nc coordinates_bdy.nc
+    
+    for AN in $YEARm1 $YEAR $YEARp1
+    do
+      for BDYNAM in bdyT_tra bdyU_u2d bdyU_u3d bdyV_u2d bdyV_u3d bdyT_ice bdyT_ssh
       do
-        rm -f ${ATM_FILE}_y${AN}.nc
-        if [ -f ${FORCINGdir}/${ATM_FILE}_y${AN}.nc ]; then
-          ln -s -v ${FORCINGdir}/${ATM_FILE}_y${AN}.nc ${ATM_FILE}_y${AN}.nc
+        rm -f ${PREFIX}${BDYNAM}_y${AN}.nc
+        if [ -f ${BDYDIR}/${PREFIX}${BDYNAM}_y${AN}_${CONFPAR}.nc ]; then
+          ln -s -v ${BDYDIR}/${PREFIX}${BDYNAM}_y${AN}_${CONFPAR}.nc ${PREFIX}${BDYNAM}_y${AN}.nc
         fi
       done
-    fi
-  done
-fi
+    done
+    
+    ## TIDES :
+    for HARM in `grep sn_tide_cnames ${PREFIX}namelist_cfg | awk '{print $3}' |sed -e "s/'//g"`
+    do
+      ln -s -v ${INPUTDIR}/BDY_TIDES/${PREFIX}bdytide_${CONFPAR}_${HARM}_grid_T.nc ${PREFIX}bdytide_${HARM}_grid_T.nc
+      ln -s -v ${INPUTDIR}/BDY_TIDES/${PREFIX}bdytide_${CONFPAR}_${HARM}_grid_U.nc ${PREFIX}bdytide_${HARM}_grid_U.nc
+      ln -s -v ${INPUTDIR}/BDY_TIDES/${PREFIX}bdytide_${CONFPAR}_${HARM}_grid_V.nc ${PREFIX}bdytide_${HARM}_grid_V.nc
+    done
 
-for iZOOM in $(seq 1 ${NZOOM})
-do
+  fi # IS_BDY
+  
+  ################################
+  ##-- atmospheric forcing
+  
+  FORDTA=`basename $FORCINGdir`
 
-  rm -f ${iZOOM}_w_bilin.nc ${iZOOM}_w_bicubic.nc
-  ln -s ${INPUTDIR}/${iZOOM}_weights_bilin_${FORDTA}_${CONFIG}.nc  ${iZOOM}_w_bilin.nc
-  ln -s ${INPUTDIR}/${iZOOM}_weights_bicub_${FORDTA}_${CONFIG}.nc  ${iZOOM}_w_bicubic.nc
-
-  IS_BLK=`grep " ln_blk " ${iZOOM}_namelist_cfg | cut -d '=' -f2 | cut -d '!' -f1 |sed -e "s/ //g"`
+  rm -f ${PREFIX}w_bilin.nc ${PREFIX}w_bicubic.nc
+  ln -s -v ${INPUTDIR}/${PREFIX}weights_bilin_${FORDTA}_${CONFIG}.nc  ${PREFIX}w_bilin.nc
+  ln -s -v ${INPUTDIR}/${PREFIX}weights_bicub_${FORDTA}_${CONFIG}.nc  ${PREFIX}w_bicubic.nc
+  
+  # The following only work if in thefollowing order: namsbc_clio, namsbc_core, namsbc_mfs
+  IS_BLK=`get_value_in_namelist 'ln_blk' '&namsbc' ${PREFIX}namelist_cfg`
   if [ $IS_BLK == ".true." ]; then
-    LINE_BLK=`grep -n namsbc_blk ${iZOOM}_namelist_cfg | tail -1 | cut -d ':' -f1`
+    LINE_BLK=`grep -n namsbc_blk ${PREFIX}namelist_cfg | tail -1 | cut -d ':' -f1`
     for NAMAT in sn_wndi sn_wndj sn_qsr sn_qlw sn_tair sn_humi sn_prec sn_snow sn_slp
     do
-      ATM_FILE=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" ${iZOOM}_namelist_cfg | cut -d "'" -f2 | grep -v \"${NAMAT}\" | head -1`
-      IS_CLIM=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" ${iZOOM}_namelist_cfg | grep -v \"${NAMAT}\" | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
+      ATM_FILE=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" ${PREFIX}namelist_cfg | cut -d "'" -f2 | grep -v \"${NAMAT}\" | head -1`
+      IS_CLIM=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" ${PREFIX}namelist_cfg | grep -v \"${NAMAT}\" | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
       if [ $IS_CLIM == ".true." ]; then
-        rm -f ${iZOOM}_${ATM_FILE}.nc
-        if [ -f ${FORCINGdir}/${iZOOM}_${ATM_FILE}.nc ]; then
-          ln -s -v ${FORCINGdir}/${iZOOM}_${ATM_FILE}.nc
+        rm -f ${PREFIX}${ATM_FILE}.nc
+        if [ -f ${FORCINGdir}/${PREFIX}${ATM_FILE}.nc ]; then
+          ln -s -v ${FORCINGdir}/${PREFIX}${ATM_FILE}.nc
         fi
       else
         for AN in  $YEARm1 $YEAR $YEARp1 
         do
-          rm -f ${iZOOM}_${ATM_FILE}_y${AN}.nc
-          if [ -f ${FORCINGdir}/${iZOOM}_${ATM_FILE}_y${AN}.nc ]; then
-            ln -s -v ${FORCINGdir}/${iZOOM}_${ATM_FILE}_y${AN}.nc ${iZOOM}_${ATM_FILE}_y${AN}.nc
+          rm -f ${PREFIX}${ATM_FILE}_y${AN}.nc
+          if [ -f ${FORCINGdir}/${PREFIX}${ATM_FILE}_y${AN}.nc ]; then
+            ln -s -v ${FORCINGdir}/${PREFIX}${ATM_FILE}_y${AN}.nc ${PREFIX}${ATM_FILE}_y${AN}.nc
           fi
         done
       fi
     done
   fi
 
-done
-
-##########
-##-- SSS restoring if any :
-
-SSSREL=`grep " nn_sssr " namelist_cfg | awk '{print $3}'`
-
-if [ $SSSREL -gt 0 ]; then
-  echo "Run with SSS relaxation : nn_sssr = $SSSREL"
-  SSS_FILE=`grep sn_sss namelist_cfg | cut -d "'" -f2 | head -1`
-  IS_CLIM=`grep sn_sss namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
-  if [ $IS_CLIM == ".true." ]; then
-    rm -f ${SSS_FILE}.nc
-    if [ -f ${INPUTDIRDIR}/sss.nc ]; then
-      ln -s -v ${INPUTDIRDIR}/sss.nc ${SSS_FILE}.nc
-    fi
-  else
-    for AN in  $YEARm1 $YEAR $YEARp1 
-    do
-      rm -f ${SSS_FILE}_y${AN}.nc
-      if [ -f ${SSSDIR}/sss_y${AN}_${CONFIG}.nc ]; then
-        ln -s -v ${SSSDIR}/sss_y${AN}_${CONFIG}.nc ${SSS_FILE}_y${AN}.nc
+  ##########################
+  ##-- SSS restoring if any :
+  
+  SSSREL=`get_value_in_namelist 'nn_sssr' '&namsbc_ssr' ${PREFIX}namelist_cfg`
+  
+  if [ $SSSREL -gt 0 ]; then
+    echo "Run with SSS relaxation : nn_sssr = $SSSREL"
+    SSS_FILE=`grep sn_sss ${PREFIX}namelist_cfg | cut -d "'" -f2 | head -1`
+    IS_CLIM=`grep sn_sss ${PREFIX}namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
+    if [ $IS_CLIM == ".true." ]; then
+      rm -f ${PREFIX}${SSS_FILE}.nc
+      if [ -f ${INPUTDIRDIR}/${PREFIX}sss.nc ]; then
+        ln -s -v ${INPUTDIRDIR}/${PREFIX}sss.nc ${PREFIX}${SSS_FILE}.nc
       fi
-    done
-  fi
-else
-  echo "Run without SSS relaxation ( nn_sssr = $SSSREL )"
-fi
-
-##########
-##-- Initial state or Restart
-
-rm -f restart.nc restart_ice.nc #restart.obc
-rm -f istate_TS_y????m??.nc istate_sea_ice_y????m??.nc istate_TS.nc istate_sea_ice.nc
-RSTN=`grep "from a restart file" namelist_cfg | awk '{print $3}' | sed -e "s/\.//g"`
-NIT_RST=${NITENDM1}
-if [ $RSTN == "true" ]; then
-  if [ $NIT_RST -eq 0 ]; then
-    ln -s -v ${INPUTDIR}/${CONFPAR}_restart_00000000.nc restart.nc
-    ln -s -v ${INPUTDIR}/${CONFPAR}_restart_ice_00000000.nc restart_ice.nc
-  else
-    if [ ! -f restart_${NIT_RST}.nc ]; then
-      echo "Copy ocean restart file from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
-      cp -p ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/restart_${NIT_RST}.nc .
+    else
+      for AN in  $YEARm1 $YEAR $YEARp1 
+      do
+        rm -f ${PREFIX}${SSS_FILE}_y${AN}.nc
+        if [ -f ${SSSDIR}/${PREFIX}sss_y${AN}_${CONFIG}.nc ]; then
+          ln -s -v ${SSSDIR}/${PREFIX}sss_y${AN}_${CONFIG}.nc ${PREFIX}${SSS_FILE}_y${AN}.nc
+        fi
+      done
     fi
-    ln -s -v restart_${NIT_RST}.nc   restart.nc
-    if [ ! -f restart_ice_${NIT_RST}.nc ]; then
-      echo "Copy ice restart file from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
-      cp -p ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/restart_ice_${NIT_RST}.nc .
-    fi
-    ln -s -v restart_ice_${NIT_RST}.nc   restart_ice.nc
   fi
-else
-  echo "Not in restart mode -> import initial T,S state"
-  if [ -z $GLOBAL_SIM ]; then
-    ln -s -v ${INPUTDIR}/istate_TS_${CONFPAR}_y${Y0}m${M0}.nc istate_TS.nc
-    ln -s -v ${INPUTDIR}/istate_sea_ice_${CONFPAR}_y${Y0}m${M0}.nc  istate_sea_ice.nc
-  else
-    ln -s -v ${INPUTDIR}/istate_TS_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc istate_TS.nc
-    ln -s -v ${INPUTDIR}/istate_sea_ice_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc  istate_sea_ice.nc
-  fi
-fi
-
-for iZOOM in $(seq 1 ${NZOOM})
-do
-
-  rm -f ${iZOOM}_restart.nc ${iZOOM}_restart_ice.nc
-  rm -f ${iZOOM}_istate_TS_y????m??.nc ${iZOOM}_istate_sea_ice_y????m??.nc ${iZOOM}_istate_TS.nc ${iZOOM}_istate_sea_ice.nc
-  RSTN=`grep "from a restart file" namelist_cfg | awk '{print $3}' | sed -e "s/\.//g"`
+  
+  ################################
+  ##-- Initial state or Restart
+  
+  rm -f ${PREFIX}restart.nc ${PREFIX}restart_ice.nc
+  rm -f ${PREFIX}istate_TS_y????m??.nc ${PREFIX}istate_sea_ice_y????m??.nc ${PREFIX}istate_TS.nc ${PREFIX}istate_sea_ice.nc
+  RSTN=`get_value_in_namelist 'ln_rstart' '&namrun' ${PREFIX}namelist_cfg`
   NIT_RST=${NITENDM1}
-  if [ $RSTN == "true" ]; then
+  if [ $RSTN == ".true." ]; then
     if [ $NIT_RST -eq 0 ]; then
-      ln -s -v ${INPUTDIR}/${iZOOM}_${CONFPAR}_restart_00000000.nc ${iZOOM}_restart.nc
-      ln -s -v ${INPUTDIR}/${iZOOM}_${CONFPAR}_restart_ice_00000000.nc ${iZOOM}_restart_ice.nc
+      ln -s -v ${INPUTDIR}/${PREFIX}${CONFPAR}_restart_00000000.nc ${PREFIX}restart.nc
+      ln -s -v ${INPUTDIR}/${PREFIX}${CONFPAR}_restart_ice_00000000.nc ${PREFIX}restart_ice.nc
     else
-      if [ ! -f ${iZOOM}_restart_${NIT_RST}.nc ]; then
-        echo "Copy zoom ocean restart file from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
-        cp -p ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${iZOOM}_restart_${NIT_RST}.nc .
+      if [ ! -f ${PREFIX}restart_${NIT_RST}.nc ]; then
+        echo "Copy ocean restart file from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
+        cp -p ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${PREFIX}restart_${NIT_RST}.nc .
       fi
-      ln -s -v ${iZOOM}_restart_${NIT_RST}.nc   ${iZOOM}_restart.nc
-      if [ ! -f ${iZOOM}_restart_ice_${NIT_RST}.nc ]; then
-        echo "Copy zoom ice restart file from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
-        cp -p ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${iZOOM}_restart_ice_${NIT_RST}.nc .
+      ln -s -v ${PREFIX}restart_${NIT_RST}.nc   ${PREFIX}restart.nc
+      if [ ! -f ${PREFIX}restart_ice_${NIT_RST}.nc ]; then
+        echo "Copy ice restart file from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
+        cp -p ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${PREFIX}restart_ice_${NIT_RST}.nc .
       fi
-      ln -s -v ${iZOOM}_restart_ice_${NIT_RST}.nc   ${iZOOM}_restart_ice.nc
+      ln -s -v ${PREFIX}restart_ice_${NIT_RST}.nc   ${PREFIX}restart_ice.nc
     fi
   else
-    echo "Not in restart mode -> import initial T,S state for the zoom"
+    echo "Not in restart mode -> import initial T,S state"
     if [ -z $GLOBAL_SIM ]; then
-      ln -s -v ${iZOOM}_istate_TS_${CONFPAR}_y${Y0}m${M0}.nc ${iZOOM}_istate_TS_y${Y0}m${M0}.nc
-      ln -s -v ${iZOOM}_istate_sea_ice_${CONFPAR}_y${Y0}m${M0}.nc  ${iZOOM}_istate_sea_ice_y${Y0}m${M0}.nc
+      ln -s -v ${INPUTDIR}/${PREFIX}istate_TS_${CONFPAR}_y${Y0}m${M0}.nc ${PREFIX}istate_TS.nc
+      ln -s -v ${INPUTDIR}/${PREFIX}istate_sea_ice_${CONFPAR}_y${Y0}m${M0}.nc ${PREFIX}istate_sea_ice.nc
     else
-      ln -s -v ${iZOOM}_istate_TS_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc ${iZOOM}_istate_TS_y${Y0}m${M0}.nc
-      ln -s -v ${iZOOM}_istate_sea_ice_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc  ${iZOOM}_istate_sea_ice_y${Y0}m${M0}.nc
+      ln -s -v ${INPUTDIR}/${PREFIX}istate_TS_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc ${PREFIX}istate_TS.nc
+      ln -s -v ${INPUTDIR}/${PREFIX}istate_sea_ice_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc  ${PREFIX}istate_sea_ice.nc
     fi
   fi
+  
+  #################
+  
+  echo " "
+  echo "Import (links+copy) of input files completed for domain ${iZOOM}."
+  echo " "
+  
+done # iZOOM
 
-done
-
-echo " "
-echo "Import (links+copy) of input files completed."
 echo " "
 echo "Launching the long nemo simulation"
 echo " "
