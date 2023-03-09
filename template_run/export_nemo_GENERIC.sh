@@ -44,6 +44,9 @@ if [ $MULTIPLE_FILE -gt 0 ]; then
     for file in `ls -1 *${CONFPAR}-${CASE}_*_0000.nc`
     do
 
+      echo "export_GENERIC.sh TO BE RE-WRITTEN BASED ON NEMO'S REBUILD FUNCTION >>>>>>>> STOP !!"
+      exit
+
       prefix_file=`echo $file | sed -e "s/_0000\.nc//g"`
       sed -e "s/pppppp/${prefix_file}/g" ../rebuild_outputs_GENERIC.f90 > rebuild_outputs.f90
       ifort -c $NC_INC rebuild_outputs.f90
@@ -75,16 +78,16 @@ fi
 ##     outputs from new on going simulation )
 
 echo " "
-ls -1 *_[1-5][d-y]_*.nc
+ls -1 *_[1-5][dmy]_*.nc
 echo " "
 
 rm -f tmp.nc
 
-#NFILES=`ls -1 *_[1-5][d-m]_*.nc | wc -l | cut -d ' ' -f1`
+#NFILES=`ls -1 *_[1-5][dmy]_*.nc | wc -l | cut -d ' ' -f1`
 #ifile=1
 #while [ $ifile -le $NFILES ];
 #do
-#   file=`ls -1 *_[1-5][d-m]_*.nc | head -${ifile} | tail -1`
+#   file=`ls -1 *_[1-5][dmy]_*.nc | head -${ifile} | tail -1`
 #   nccopy -d 9 $file tmp.nc
 #   if [ -f tmp.nc ]; then
 #      mv -f tmp.nc $file
@@ -144,41 +147,52 @@ echo "Moving restart files to ${STOCKDIR}..."
 ## NITEND with zeros in front:
 ENDLONG=`echo "${NITEND} + 100000000" |bc | sed -e "s/1//"`
 
+##-- ocean :
 NRST=`ls -1 ${WORKDIR}/restart_????????.nc | wc -l`
-for iRST in $(seq 2 $NRST) ## NB: the last restart file is kept for the next run
-do
+for iRST in $(seq 2 $NRST); do ## NB: the last restart file is kept for the next run
   DTMP_RST=`ls -1 restart_????????.nc | tail -${iRST} | head -1`
   echo ${DTMP_RST}
   NIT_RST=`basename ${DTMP_RST} | cut -d '_' -f2 | cut -d '.' -f1`
   mv restart_${NIT_RST}.nc ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/.
 done
 
+##-- sea ice :
 NRST=`ls -1 ${WORKDIR}/restart_ice_????????.nc | wc -l`
-for iRST in $(seq 2 $NRST) ## NB: the last restart file is kept for the next run
-do
+for iRST in $(seq 2 $NRST); do ## NB: the last restart file is kept for the next run
   DTMP_RST=`ls -1 restart_ice_????????.nc | tail -${iRST} | head -1`
   echo ${DTMP_RST}
   NIT_RST=`basename ${DTMP_RST} | cut -d '_' -f3 | cut -d '.' -f1`
   mv restart_ice_${NIT_RST}.nc ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/.
 done
 
-for iZOOM in $(seq 1 $NZOOM)
-do
+##-- icebergs :
+NRST=`ls -1 ${WORKDIR}/restart_icb_[0-9]???????.tar | wc -l`
+for iRST in $(seq 2 $NRST); do ## NB: the last restart file is kept for the next run
+  DTMP_RST=`ls -1 restart_icb_[0-9]???????.tar | tail -${iRST} | head -1`
+  echo ${DTMP_RST}
+  NIT_RST=`basename ${DTMP_RST} | cut -d '_' -f3 | cut -d '.' -f1`
+  mv restart_icb_${NIT_RST}.tar ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/.
+done
+
+##-- Repeat for child domains :
+for iZOOM in $(seq 1 $NZOOM); do
   NRST=`ls -1 ${WORKDIR}/${iZOOM}_restart_????????.nc | wc -l`
-  for iRST in $(seq 2 $NRST) ## NB: the last restart file is kept for the next run
-  do
+  for iRST in $(seq 2 $NRST); do ## NB: the last restart file is kept for the next run
     DTMP_RST=`ls -1 ${iZOOM}_restart_????????.nc | tail -${iRST} | head -1`
-    echo ${DTMP_RST}
     NIT_RST=`basename ${DTMP_RST} | cut -d '_' -f3 | cut -d '.' -f1`
     mv ${iZOOM}_restart_${NIT_RST}.nc ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/.
   done
   NRST=`ls -1 ${WORKDIR}/${iZOOM}_restart_ice_????????.nc | wc -l`
-  for iRST in $(seq 2 $NRST) ## NB: the last restart file is kept for the next run
-  do
+  for iRST in $(seq 2 $NRST); do ## NB: the last restart file is kept for the next run
     DTMP_RST=`ls -1 ${iZOOM}_restart_ice_????????.nc | tail -${iRST} | head -1`
-    echo ${DTMP_RST}
     NIT_RST=`basename ${DTMP_RST} | cut -d '_' -f4 | cut -d '.' -f1`
     mv ${iZOOM}_restart_ice_${NIT_RST}.nc ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/.
+  done
+  NRST=`ls -1 ${WORKDIR}/${iZOOM}_restart_icb_[0-9]???????.tar | wc -l`
+  for iRST in $(seq 2 $NRST); do ## NB: the last restart file is kept for the next run
+    DTMP_RST=`ls -1 ${iZOOM}_restart_icb_[0-9]???????.tar | tail -${iRST} | head -1`
+    NIT_RST=`basename ${DTMP_RST} | cut -d '_' -f3 | cut -d '.' -f1`
+    mv ${iZOOM}_restart_icb_${NIT_RST}.tar ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/.
   done
 done
 
