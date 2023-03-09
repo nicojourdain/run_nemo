@@ -155,8 +155,7 @@ NRUN=1
 NITENDM1=0  ## last time step of previous run
 ## add last time step of previous runs on children domains 
 ## at the end of the line in prod_nemo.db :
-for iZOOM in $(seq 1 ${NZOOM})
-do
+for iZOOM in $(seq 1 ${NZOOM}); do
   sed -e "s/$/ 0/g" prod_nemo.db > tmp
   mv tmp prod_nemo.db
 done
@@ -284,8 +283,7 @@ mv -f tmp namelist_ref
 
 ln -s namelist_ref namelist_cfg
 
-for iZOOM in $(seq 1 $NZOOM)
-do
+for iZOOM in $(seq 1 $NZOOM); do
   echo "Editing ${iZOOM}_namelist..."
   rm -f ${iZOOM}_namelist_ref ${iZOOM}_namelist_cfg
   if [ $NRUN -gt 1 ] || [ $CONFIG == "trop075" ]; then
@@ -366,8 +364,7 @@ get_value_in_namelist() {
 }
 
 # Loop over parent config (iZOOM=0) and AGRIF child domains (iZOOM>0) :
-for iZOOM in $(seq 0 ${NZOOM})
-do
+for iZOOM in $(seq 0 ${NZOOM}); do
 
   if [ $iZOOM -eq 0 ]; then
     PREFIX=''
@@ -426,8 +423,7 @@ do
       rm -f ${PREFIX}runoff.nc ${PREFIX}runoff_y????.nc
       ln -s -v ${INPUTDIR}/${PREFIX}runoff_${CONFPAR}.nc ${PREFIX}runoff.nc
     else
-      for AN in $YEARm1 $YEAR $YEARp1
-      do
+      for AN in $YEARm1 $YEAR $YEARp1; do
         rm -f ${PREFIX}runoff.nc ${PREFIX}runoff_y${AN}.nc
         if [ -f ${RNFDIR}/${PREFIX}runoff_y${AN}_${CONFPAR}.nc ]; then 
           ln -s -v ${RNFDIR}/${PREFIX}runoff_y${AN}_${CONFPAR}.nc ${PREFIX}runoff_y${AN}.nc
@@ -484,10 +480,8 @@ do
     rm -f coordinates_bdy.nc
     ln -s -v ${INPUTDIR}/coordinates_bdy_${CONFPAR}.nc coordinates_bdy.nc
     
-    for AN in $YEARm1 $YEAR $YEARp1
-    do
-      for BDYNAM in bdyT_tra bdyU_u2d bdyU_u3d bdyV_u2d bdyV_u3d bdyT_ice bdyT_ssh
-      do
+    for AN in $YEARm1 $YEAR $YEARp1; do
+      for BDYNAM in bdyT_tra bdyU_u2d bdyU_u3d bdyV_u2d bdyV_u3d bdyT_ice bdyT_ssh; do
         rm -f ${PREFIX}${BDYNAM}_y${AN}.nc
         if [ -f ${BDYDIR}/${PREFIX}${BDYNAM}_y${AN}_${CONFPAR}.nc ]; then
           ln -s -v ${BDYDIR}/${PREFIX}${BDYNAM}_y${AN}_${CONFPAR}.nc ${PREFIX}${BDYNAM}_y${AN}.nc
@@ -496,8 +490,7 @@ do
     done
     
     ## TIDES :
-    for HARM in `grep sn_tide_cnames ${PREFIX}namelist_cfg | awk '{print $3}' |sed -e "s/'//g"`
-    do
+    for HARM in `grep sn_tide_cnames ${PREFIX}namelist_cfg | awk '{print $3}' |sed -e "s/'//g"`; do
       ln -s -v ${INPUTDIR}/BDY_TIDES/${PREFIX}bdytide_${CONFPAR}_${HARM}_grid_T.nc ${PREFIX}bdytide_${HARM}_grid_T.nc
       ln -s -v ${INPUTDIR}/BDY_TIDES/${PREFIX}bdytide_${CONFPAR}_${HARM}_grid_U.nc ${PREFIX}bdytide_${HARM}_grid_U.nc
       ln -s -v ${INPUTDIR}/BDY_TIDES/${PREFIX}bdytide_${CONFPAR}_${HARM}_grid_V.nc ${PREFIX}bdytide_${HARM}_grid_V.nc
@@ -518,8 +511,7 @@ do
   IS_BLK=`get_value_in_namelist 'ln_blk' '&namsbc' ${PREFIX}namelist_cfg`
   if [ $IS_BLK == ".true." ]; then
     LINE_BLK=`grep -n namsbc_blk ${PREFIX}namelist_cfg | tail -1 | cut -d ':' -f1`
-    for NAMAT in sn_wndi sn_wndj sn_qsr sn_qlw sn_tair sn_humi sn_prec sn_snow sn_slp
-    do
+    for NAMAT in sn_wndi sn_wndj sn_qsr sn_qlw sn_tair sn_humi sn_prec sn_snow sn_slp; do
       ATM_FILE=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" ${PREFIX}namelist_cfg | cut -d "'" -f2 | grep -v \"${NAMAT}\" | head -1`
       IS_CLIM=`awk "/${NAMAT}/ && NR >= ${LINE_BLK}" ${PREFIX}namelist_cfg | grep -v \"${NAMAT}\" | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
       if [ $IS_CLIM == ".true." ]; then
@@ -528,8 +520,7 @@ do
           ln -s -v ${FORCINGdir}/${PREFIX}${ATM_FILE}.nc
         fi
       else
-        for AN in  $YEARm1 $YEAR $YEARp1 
-        do
+        for AN in  $YEARm1 $YEAR $YEARp1; do
           rm -f ${PREFIX}${ATM_FILE}_y${AN}.nc
           if [ -f ${FORCINGdir}/${PREFIX}${ATM_FILE}_y${AN}.nc ]; then
             ln -s -v ${FORCINGdir}/${PREFIX}${ATM_FILE}_y${AN}.nc ${PREFIX}${ATM_FILE}_y${AN}.nc
@@ -554,8 +545,7 @@ do
         ln -s -v ${INPUTDIRDIR}/${PREFIX}sss.nc ${PREFIX}${SSS_FILE}.nc
       fi
     else
-      for AN in  $YEARm1 $YEAR $YEARp1 
-      do
+      for AN in  $YEARm1 $YEAR $YEARp1 ; do
         rm -f ${PREFIX}${SSS_FILE}_y${AN}.nc
         if [ -f ${SSSDIR}/${PREFIX}sss_y${AN}_${CONFIG}.nc ]; then
           ln -s -v ${SSSDIR}/${PREFIX}sss_y${AN}_${CONFIG}.nc ${PREFIX}${SSS_FILE}_y${AN}.nc
@@ -570,11 +560,15 @@ do
   rm -f ${PREFIX}restart.nc ${PREFIX}restart_ice.nc
   rm -f ${PREFIX}istate_TS_y????m??.nc ${PREFIX}istate_sea_ice_y????m??.nc ${PREFIX}istate_TS.nc ${PREFIX}istate_sea_ice.nc
   RSTN=`get_value_in_namelist 'ln_rstart' '&namrun' ${PREFIX}namelist_cfg`
+  IS_ICB=`get_value_in_namelist 'ln_icebergs' '&namberg' ${PREFIX}namelist_cfg`
   NIT_RST=${NITENDM1}
   if [ $RSTN == ".true." ]; then
     if [ $NIT_RST -eq 0 ]; then
       ln -s -v ${INPUTDIR}/${PREFIX}${CONFPAR}_restart_00000000.nc ${PREFIX}restart.nc
       ln -s -v ${INPUTDIR}/${PREFIX}${CONFPAR}_restart_ice_00000000.nc ${PREFIX}restart_ice.nc
+      if [ $IS_ICB == ".true." ]; then
+        ln -s -v ${INPUTDIR}/${PREFIX}${CONFPAR}_restart_icb_00000000.nc ${PREFIX}restart_icb.nc
+      fi
     else
       if [ ! -f ${PREFIX}restart_${NIT_RST}.nc ]; then
         echo "Copy ocean restart file from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
@@ -582,10 +576,26 @@ do
       fi
       ln -s -v ${PREFIX}restart_${NIT_RST}.nc   ${PREFIX}restart.nc
       if [ ! -f ${PREFIX}restart_ice_${NIT_RST}.nc ]; then
-        echo "Copy ice restart file from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
+        echo "Copy sea ice restart file from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
         cp -p ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${PREFIX}restart_ice_${NIT_RST}.nc .
       fi
       ln -s -v ${PREFIX}restart_ice_${NIT_RST}.nc   ${PREFIX}restart_ice.nc
+      if [ $IS_ICB == ".true." ]; then
+        if [ ! -f ${PREFIX}restart_icb_${NIT_RST}.nc ]; then
+          echo "Copy iceberg restart file from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
+          if [ -f ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${PREFIX}restart_icb_${NIT_RST}.nc ]; then
+            cp -p ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${PREFIX}restart_icb_${NIT_RST}.nc .
+            ln -s -v ${PREFIX}restart_icb_${NIT_RST}.nc   ${PREFIX}restart_icb.nc
+          elif [ -f ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${PREFIX}restart_icb_${NIT_RST}.tar ]; then
+            cp -p ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${PREFIX}restart_icb_${NIT_RST}.tar .
+            tar xvf ${PREFIX}restart_icb_${NIT_RST}.tar
+            for file in `ls -1 ${PREFIX}${CONFIG}-${CASE}_${NIT_RST}_restart_icb_*.nc` ; do
+              f2=`ls -1 $file | sed -e "s/${CONFIG}-${CASE}_${NIT_RST}_//g"`
+              mv $file $f2
+            done
+          fi
+        fi
+      fi
     fi
   else
     echo "Not in restart mode -> import initial T,S state"
@@ -635,14 +645,6 @@ else
   exit
 fi
 
-#rm -f app.conf
-#echo "0-$(( NB_TASK_XIOS - 1 )) xios_server.exe"          >  app.conf
-#echo "${NB_TASK_XIOS}-$(( SLURM_NTASKS - 1 )) nemo.exe "  >> app.conf
-#
-#srun --mpi=pmi2  -m cyclic \
-#    --cpu_bind=map_cpu:0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23\
-#    --multi-prog  ./app.conf
-
 echo " "
 date
 echo " "
@@ -651,21 +653,19 @@ echo " "
 rm -f rebuild_nemo.exe rebuild_nemo
 ln -s -v ${NEMOdir}/tools/REBUILD_NEMO/BLD/bin/rebuild_nemo.exe
 ln -s -v ${NEMOdir}/tools/REBUILD_NEMO/rebuild_nemo
-for STUF in mesh_mask bdy_mesh output.abort output.abort_ice output.init output.init_ice
-do
-  if [ -f ${STUF}_0000.nc ]; then
-    NF=`ls -1 ${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
-    rebuild_nemo -m -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
-    rm -f ${STUF}_[0-9][0-9][0-9][0-9].nc
-    for iZOOM in $(seq 1 ${NZOOM})
-    do
-      if [ -f ${iZOOM}_${STUF}_0000.nc ]; then
-        NF=`ls -1 ${iZOOM}_${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
-        rebuild_nemo -m -d 1 -x 200 -y 200 -z 1 -t 1 ${iZOOM}_${STUF} $NF
-      fi
-      rm -f ${iZOOM}_${STUF}_[0-9][0-9][0-9][0-9].nc
-    done
-  fi
+for STUF in mesh_mask bdy_mesh output.abort output.abort_ice output.init output.init_ice; do
+  for iZOOM in $(seq 0 ${NZOOM}); do
+    if [ $iZOOM -eq 0 ]; then
+      PREFIX=''
+    else
+      PREFIX="${iZOOM}_"
+    fi
+    if [ -f ${PREFIX}${STUF}_0000.nc ]; then
+      NF=`ls -1 ${PREFIX}${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
+      rebuild_nemo -m -d 1 -x 200 -y 200 -z 1 -t 1 ${PREFIX}$STUF $NF
+      rm -f ${PREFIX}${STUF}_[0-9][0-9][0-9][0-9].nc
+    fi
+  done
 done
 rm -f nam_rebuild_[0-9][0-9][0-9][0-9][0-9]
 
@@ -685,28 +685,23 @@ if [ $IS_ISCPL == 'true' ]; then
   fi
 fi
 
-mv -f ${CONFIG}-${CASE}_[1-5][d-m]_*nc OUTPUT_${NRUN}/.
-mv -f namelist_ref                     OUTPUT_${NRUN}/namelist.${NRUN}
-mv -f namelist_ice_ref                 OUTPUT_${NRUN}/namelist_ice.${NRUN}
-mv -f ocean.output                     OUTPUT_${NRUN}/ocean.output.${NRUN}
-rm -f namelist_ice_cfg namelist_cfg
-
-for iZOOM in $(seq 1 ${NZOOM})
-do
-  mv -f ${iZOOM}_${CONFPAR}-${CASE}_[1-5][d-m]_*nc  OUTPUT_${NRUN}/.
-  mv -f ${iZOOM}_namelist_ref                       OUTPUT_${NRUN}/${iZOOM}_namelist.${NRUN}
-  mv -f ${iZOOM}_namelist_ice_ref                   OUTPUT_${NRUN}/${iZOOM}_namelist_ice.${NRUN}
-  mv -f ${iZOOM}_ocean.output                       OUTPUT_${NRUN}/${iZOOM}_ocean.output.${NRUN}
-  rm -f ${iZOOM}_namelist_ice_cfg ${iZOOM}_namelist_cfg
+for iZOOM in $(seq 0 ${NZOOM}); do
+  if [ $iZOOM -eq 0 ]; then
+    PREFIX=''
+  else
+    PREFIX="${iZOOM}_"
+  fi
+  mv -f ${PREFIX}${CONFIG}-${CASE}_[1-5][dmy]_*nc OUTPUT_${NRUN}/.
+  mv -f ${PREFIX}namelist_ref                     OUTPUT_${NRUN}/${PREFIX}namelist.${NRUN}
+  mv -f ${PREFIX}namelist_ice_ref                 OUTPUT_${NRUN}/${PREFIX}namelist_ice.${NRUN}
+  mv -f ${PREFIX}ocean.output                     OUTPUT_${NRUN}/${PREFIX}ocean.output.${NRUN}
+  rm -f ${PREFIX}namelist_ice_cfg ${PREFIX}namelist_cfg
 done
-
-## used to know how many multiple output files are created (in xios mode "multiple_file")
-echo "xxx $NB_TASK_XIOS xios_server.exe xxx" > OUTPUT_${NRUN}/app.copy
 
 ##########################################################
 ##-- prepare next run if every little thing went all right
 
-NTEST_O=`ls -1 OUTPUT_${NRUN}/${CONFIG}-${CASE}_[1-5][d-m]_*nc |wc -l`
+NTEST_O=`ls -1 OUTPUT_${NRUN}/${CONFIG}-${CASE}_[1-5][dmy]_*nc |wc -l`
 NTEST_R=`ls -1 ${CONFIG}-${CASE}_*_restart_*.nc |wc -l`
 
 FILE_TEST=`ls -1 OUTPUT_${NRUN}/${CONFIG}-${CASE}_*_SBC.nc | tail -1`
@@ -736,8 +731,7 @@ if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
   echo " "
   echo "$LAST_RESTART_NIT" > restart_nit.txt
   ##-- add last restart time step on chidren grids (at the end of last line in prod_nemo.db):
-  for iZOOM in $(seq 1 ${NZOOM})
-  do
+  for iZOOM in $(seq 1 ${NZOOM}); do
     LAST_RESTART_NIT_ZOOM=`ls -1 ${iZOOM}_${CONFIG}-${CASE}_*_restart_*.nc | tail -1 | sed -e "s/${iZOOM}_${CONFIG}-${CASE}//g" | cut -d '_' -f2`
     sed -e "`wc -l prod_nemo.db | cut -d ' ' -f1`s/$/ ${LAST_RESTART_NIT_ZOOM}/g" prod_nemo.db > tmp
     mv tmp prod_nemo.db
@@ -752,33 +746,44 @@ if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
   date
   echo " "
 
-  ## rebuild restart files for parent grid :
-  FILEBASE_OCE=`ls -1 ${CONFIG}-${CASE}_[0-9]???????_restart_0000.nc | sed -e "s/_0000.nc//g"`
-  FILEBASE_ICE=`ls -1 ${CONFIG}-${CASE}_[0-9]???????_restart_ice_0000.nc | sed -e "s/_0000.nc//g"`
-  for STUF in $FILEBASE_OCE $FILEBASE_ICE 
-  do
-    NF=`ls -1 ${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
-    rebuild_nemo -m -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
-    rm -f ${STUF}_[0-9][0-9][0-9][0-9].nc
-  done
-  mv ${FILEBASE_OCE}.nc restart_${LAST_RESTART_NIT}.nc
-  mv ${FILEBASE_ICE}.nc restart_ice_${LAST_RESTART_NIT}.nc
+  ####################################
+  ##-- Rebuilding restart files :
+  for iZOOM in $(seq 0 ${NZOOM}); do
 
-  ## rebuild restart files for child domains :
-  for iZOOM in $(seq 1 ${NZOOM})
-  do
-    LAST_RESTART_NIT_ZOOM=`cat ${iZOOM}_restart_nit.txt`
-    FILEBASE_OCE=`ls -1 ${iZOOM}_${CONFIG}-${CASE}_[0-9]???????_restart_0000.nc | sed -e "s/_0000.nc//g"`
-    FILEBASE_ICE=`ls -1 ${iZOOM}_${CONFIG}-${CASE}_[0-9]???????_restart_ice_0000.nc | sed -e "s/_0000.nc//g"`
-    for STUF in $FILEBASE_OCE $FILEBASE_ICE
-    do
+    if [ $iZOOM -eq 0 ]; then
+      PREFIX=''
+      LAST_RESTART_NIT_DOM=${LAST_RESTART_NIT}
+    else
+      PREFIX="${iZOOM}_"
+      LAST_RESTART_NIT_DOM=`cat ${iZOOM}_restart_nit.txt`
+    fi
+
+    ## ocean and sea-ice restart
+    FILEBASE_OCE=`ls -1 ${PREFIX}${CONFIG}-${CASE}_[0-9]???????_restart_0000.nc | sed -e "s/_0000.nc//g"`
+    FILEBASE_ICE=`ls -1 ${PREFIX}${CONFIG}-${CASE}_[0-9]???????_restart_ice_0000.nc | sed -e "s/_0000.nc//g"`
+    for STUF in $FILEBASE_OCE $FILEBASE_ICE; do
       NF=`ls -1 ${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
       rebuild_nemo -m -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
       rm -f ${STUF}_[0-9][0-9][0-9][0-9].nc
     done
-    mv ${FILEBASE_OCE}.nc ${iZOOM}_restart_${LAST_RESTART_NIT_ZOOM}.nc
-    mv ${FILEBASE_ICE}.nc ${iZOOM}_restart_ice_${LAST_RESTART_NIT_ZOOM}.nc
-  done
+    mv ${FILEBASE_OCE}.nc ${PREFIX}restart_${LAST_RESTART_NIT_DOM}.nc
+    mv ${FILEBASE_ICE}.nc ${PREFIX}restart_ice_${LAST_RESTART_NIT_DOM}.nc
+  
+    ## Create an archive for the icb files
+    IS_ICB=`get_value_in_namelist 'ln_icebergs' '&namberg' ${PREFIX}namelist_cfg`
+    if [ $IS_ICB == ".true." ]; then
+      FILEBASE_ICB="${PREFIX}${CONFIG}-${CASE}_${LAST_RESTART_NIT_DOM}_restart_icb.tar"
+      tar -cf $FILEBASE_ICB  ${PREFIX}${CONFIG}-${CASE}_${LAST_RESTART_NIT_DOM}_restart_icb*.nc
+      if [ ! -f $FILEBASE_ICB ]; then
+         echo "Error when creating $FILEBASE_ICB" && exit
+      else
+         echo "$FILEBASE_ICB ok, deleting individual nectdf files"
+         rm -f ${PREFIX}${CONFIG}-${CASE}_${LAST_RESTART_NIT_DOM}_restart_icb*.nc
+         mv $FILEBASE_ICB ${PREFIX}restart_icb_${LAST_RESTART_NIT_DOM}.tar
+      fi
+    fi
+
+  done # iZOOM
 
   echo " "
   date
@@ -789,8 +794,7 @@ if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
   NRUNm2=`expr $NRUN - 1`
   NRUN=`expr $NRUN + 1`
   TMPTMP="${LAST_RESTART_NIT}"
-  for iZOOM in $(seq 1 ${NZOOM})
-  do
+  for iZOOM in $(seq 1 ${NZOOM}); do
     LAST_RESTART_NIT_ZOOM=`cat ${iZOOM}_restart_nit.txt`
     TMPTMP="${TMPTMP} ${LAST_RESTART_NIT_ZOOM}"
   done
@@ -802,14 +806,12 @@ if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
     YEARm2="0$YEARm2"
   fi
   if [ $IS_BLK_CORE == ".true." ]; then
-    for NAMAT in sn_wndi sn_wndj sn_qsr sn_qlw sn_tair sn_humi sn_prec sn_snow sn_slp
-    do
+    for NAMAT in sn_wndi sn_wndj sn_qsr sn_qlw sn_tair sn_humi sn_prec sn_snow sn_slp; do
       ATM_FILE=`grep $NAMAT namelist_cfg | cut -d "'" -f2 | head -1`
       IS_CLIM=`grep $NAMAT namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
       if [ $IS_CLIM == ".false." ]; then
         rm -f ${ATM_FILE}_y${YEARm2}.nc
-        for iZOOM in $(seq 1 $NZOOM)
-        do
+        for iZOOM in $(seq 1 $NZOOM); do
            rm -f ${iZOOM}_${ATM_FILE}_y${YEARm2}.nc
         done
       fi
