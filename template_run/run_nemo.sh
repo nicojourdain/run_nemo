@@ -41,8 +41,9 @@ OUTPUT_FREQ='1d' # = '1d' for daily-mean outputs
                  # = '5d' for 5-day-mean outputs (only for BYMONTH=0)
                  # = '1m' for monthly-mean outputs (only for BYMONTH=1)
                  # = '1d1m' for both daily-mean and monthly-mean outputs (only for BYMONTH=1)
-                 # = '5d1y' for both 5-day-mean and yearly-mean outputs (only for BYMONTH=0)
-                 # = '5d1m1y' for both 5-day-mean and yearly-mean outputs (only for BYMONTH=0)
+                 # = '5d1y' for both 5-day-mean and yearly-mean outputs (only for BYMONTH=0 and full years) -- check for leap years
+                 # = '1m1y' for both monthly-mean and yearly-mean outputs (only for BYMONTH=1 and full years)
+                 # = '5d1m1y' for both 5-day-mean and yearly-mean outputs (only for BYMONTH=1 and full years) -- check for leap years
 
 WORKDIR=`pwd`
 

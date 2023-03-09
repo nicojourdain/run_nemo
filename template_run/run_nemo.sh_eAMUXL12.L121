@@ -368,8 +368,41 @@ else
   ln -s -v ${INPUTDIR}/domain_cfg_${CONFPAR}_${TOPO}.nc domain_cfg.nc
 fi
 
-rm -f chlorophyll.nc
-ln -s -v ${INPUTDIR}/chlorophyll_${CONFPAR}.nc chlorophyll.nc
+##-- Chlorophyll Concentration (for vertical penetration of solar flux):
+IS_TRAQSR=`grep ln_traqsr namelist_cfg | grep '\.' | awk '{print $3}'`
+if [ $IS_TRAQSR == ".true." ]; then
+  rm -f chlorophyll.nc
+  if [ -f ${INPUTDIR}/chlorophyll_${CONFPAR}.nc ]; then
+    # use interpolated file :
+    ln -s -v ${INPUTDIR}/chlorophyll_${CONFPAR}.nc chlorophyll.nc
+  else
+    # use weights :
+    WGT_QSR_FILE=`grep sn_chl namelist_cfg | grep '\.' | cut -d ',' -f7 |sed -e "s/'//g"`
+    if [ -f ${INPUTDIR}/${WGT_QSR_FILE} ]; then
+      ln -s -v ${INPUTDIR}/chlorophyll.nc
+      ln -s -v ${INPUTDIR}/${WGT_QSR_FILE}
+    fi
+  fi
+fi
+
+##-- Geothermal Heat Flux :
+IS_GEO1=`grep ln_trabbc namelist_cfg | grep '\.' | awk '{print $3}'`
+IS_GEO2=`grep nn_geoflx namelist_cfg | grep '\.' | awk '{print $3}'`
+if [ $IS_GEO1 == ".true." ] && [ $IS_GEO2 == "2" ]; then
+  rm -f geothermal_heating.nc
+  if [ -f ${INPUTDIR}/geothermal_heating_${CONFPAR}.nc ]; then
+    # use interpolated file :
+    ln -s -v ${INPUTDIR}/geothermal_heating_${CONFPAR}.nc geothermal_heating.nc
+  else
+    # use weights :
+    WGT_GEO_FILE=`grep sn_qgh namelist_cfg | grep '\.' | cut -d ',' -f7 |sed -e "s/'//g"`
+    if [ -f ${INPUTDIR}/${WGT_GEO_FILE} ]; then
+      ln -s -v ${INPUTDIR}/geothermal_heating.nc
+      ln -s -v ${INPUTDIR}/${WGT_GEO_FILE}
+    fi
+  fi
+fi
+
 
 IS_RNF=`grep " ln_rnf " namelist_cfg | grep '\.' | cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"`
 if [ $IS_RNF == ".true." ]; then
