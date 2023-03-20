@@ -52,7 +52,8 @@ STOCKDIR="$GEN6035_CCCSCRATCHDIR"  #- restart, output directory
 INPUTDIR="${GEN6035_CCCWORKDIR}/input/nemo_${CONFIG}"  #- input directory
 
 GLOBAL_SIM='OPM026'  # ORCA simulation used for BDY, runoff and sss restoring
-                     # (also used in istate file names; define GLOBAL_SIM='' if not used)
+                     # (also used to look for possible istate file names)
+                     # Define GLOBAL_SIM='' if not used.
 BDYDIR="${INPUTDIR}/BDY_${GLOBAL_SIM}"  #- input directory for BDYs
 SSSDIR="${INPUTDIR}/SSS_${GLOBAL_SIM}"  #- input directory for SSS relaxation (if any)
 RNFDIR="${INPUTDIR}/RNF_${GLOBAL_SIM}"  #- input directory for runoff relaxation (if any)
@@ -600,7 +601,7 @@ for iZOOM in $(seq 0 ${NZOOM}); do
     fi
   else
     echo "Not in restart mode -> import initial T,S state"
-    if [ -z $GLOBAL_SIM ]; then
+    if [ -z $GLOBAL_SIM ] || [ ! -f ${INPUTDIR}/${PREFIX}istate_TS_${CONFPAR}_${GLOBAL_SIM}_y${Y0}m${M0}.nc ]; then
       ln -s -v ${INPUTDIR}/${PREFIX}istate_TS_${CONFPAR}_y${Y0}m${M0}.nc ${PREFIX}istate_TS.nc
       ln -s -v ${INPUTDIR}/${PREFIX}istate_sea_ice_${CONFPAR}_y${Y0}m${M0}.nc ${PREFIX}istate_sea_ice.nc
     else
