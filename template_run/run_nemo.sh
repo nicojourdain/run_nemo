@@ -362,7 +362,7 @@ fi
 # Function that tells if namelist variable (1st argument) is in 
 # a given namelist section (2nd arg.) for a given namelist (3rd arg.):
 get_value_in_namelist() {
-  sed -n "/^${2}/, /^\//p" $3 |grep $1 | cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"
+  sed -n "/^${2}/, /^\//p" $3 |grep " $1 " | cut -d '=' -f2 | cut -d '!' -f1 | sed -e "s/ //g"
 }
 
 # Loop over parent config (iZOOM=0) and AGRIF child domains (iZOOM>0) :
@@ -465,8 +465,8 @@ for iZOOM in $(seq 0 ${NZOOM}); do
   ##-- Localy-varying lateral friction (DRAKKAR only) :
   IS_DRAK=`grep '&namlbc_drk' ${PREFIX}namelist_cfg |wc -l`
   if [ $IS_DRAK -ne 0 ]; then
-    LS_SHLAT2D=`get_value_in_namelist 'ln_shlat2d' '&namlbc_drk' ${PREFIX}namelist_cfg`
-    if [ $LS_SHLAT2D == ".true." ]; then
+    IS_SHLAT2D=`get_value_in_namelist 'ln_shlat2d' '&namlbc_drk' ${PREFIX}namelist_cfg`
+    if [ $IS_SHLAT2D == ".true." ]; then
       rm -f ${PREFIX}shlat2d.nc
       ln -s -v ${INPUTDIR}/${PREFIX}shlat_${CONFPAR}.nc ${PREFIX}shlat2d.nc
     fi
