@@ -10,5 +10,5 @@
 #MSUB -T 3600 
 #MSUB -A gen6035
 #MSUB -q rome
-#MSUB -m store,work,scratch
+#MSUB -m store,work,workflash,scratch
 

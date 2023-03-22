@@ -391,10 +391,10 @@ for iZOOM in $(seq 0 ${NZOOM}); do
       ln -s -v ${INPUTDIR}/${PREFIX}chlorophyll_${CONFPAR}.nc ${PREFIX}chlorophyll.nc
     else
       # use weights :
-      WGT_QSR_FILE=`grep sn_chl ${PREFIX}namelist_cfg | grep '\.' | cut -d ',' -f7 |sed -e "s/'//g"`
-      if [ -f ${INPUTDIR}/${PREFIX}${WGT_QSR_FILE} ]; then
-        ln -s -v ${INPUTDIR}/${PREFIX}chlorophyll.nc
-        ln -s -v ${INPUTDIR}/${PREFIX}${WGT_QSR_FILE}
+      WGT_QSR_FILE=`grep sn_chl ${PREFIX}namelist_cfg | grep '\.' | cut -d ',' -f7 |sed -e "s/'//g ; s/ //g"`
+      if [ -f ${INPUTDIR}/${PREFIX}weights_bilin_chlorophyll_${CONFPAR}.nc ]; then
+        ln -s -v -f ${INPUTDIR}/chlorophyll.nc
+        ln -s -v ${INPUTDIR}/${PREFIX}weights_bilin_chlorophyll_${CONFPAR}.nc ${PREFIX}${WGT_QSR_FILE}
       fi
     fi
   fi
@@ -409,10 +409,10 @@ for iZOOM in $(seq 0 ${NZOOM}); do
       ln -s -v ${INPUTDIR}/${PREFIX}geothermal_heating_${CONFPAR}.nc ${PREFIX}geothermal_heating.nc
     else
       # use weights :
-      WGT_GEO_FILE=`grep sn_qgh ${PREFIX}namelist_cfg | grep '\.' | cut -d ',' -f7 |sed -e "s/'//g"`
-      if [ -f ${INPUTDIR}/${PREFIX}${WGT_GEO_FILE} ]; then
-        ln -s -v ${INPUTDIR}/${PREFIX}geothermal_heating.nc
-        ln -s -v ${INPUTDIR}/${PREFIX}${WGT_GEO_FILE}
+      WGT_GEO_FILE=`grep sn_qgh ${PREFIX}namelist_cfg | grep '\.' | cut -d ',' -f7 |sed -e "s/'//g; s/ //g"`
+      if [ -f ${INPUTDIR}/${PREFIX}weights_bilin_geothermalflux_${CONFPAR}.nc ]; then
+        ln -s -v -f ${INPUTDIR}/geothermal_heating.nc
+        ln -s -v ${INPUTDIR}/${PREFIX}weights_bilin_geothermalflux_${CONFPAR}.nc ${PREFIX}${WGT_GEO_FILE}
       fi
     fi
   fi
