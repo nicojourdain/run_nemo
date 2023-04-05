@@ -472,6 +472,13 @@ for iZOOM in $(seq 0 ${NZOOM}); do
     fi
   fi
 
+  ##-- Prescribed iceberg calving :
+  IS_ICB=`get_value_in_namelist 'ln_icebergs' '&namberg' ${PREFIX}namelist_cfg`
+  if [ $IS_ICB == ".true." ]; then
+    rm -f ${PREFIX}calving.nc
+    ln -s -v ${INPUTDIR}/${PREFIX}calving_${CONFIG}.nc ${PREFIX}calving.nc
+  fi
+
   ##########
   ##-- import Boundary Conditions (BDYs) 
 
@@ -536,8 +543,8 @@ for iZOOM in $(seq 0 ${NZOOM}); do
   ##-- SSS restoring if any :
   
   SSSREL=`get_value_in_namelist 'nn_sssr' '&namsbc_ssr' ${PREFIX}namelist_cfg`
-  
-  if [ $SSSREL -gt 0 ]; then
+ 
+  if [ $SSSREL -gt 0 ] && [ $SSSREL -lt 3 ]; then
     echo "Run with SSS relaxation : nn_sssr = $SSSREL"
     SSS_FILE=`grep sn_sss ${PREFIX}namelist_cfg | cut -d "'" -f2 | head -1`
     IS_CLIM=`grep sn_sss ${PREFIX}namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
@@ -554,15 +561,19 @@ for iZOOM in $(seq 0 ${NZOOM}); do
         fi
       done
     fi
+  elif [ $SSSREL -eq 3 ]; then
+    echo "Run with prescribed corrective freshwater flux : nn_sssr = $SSSREL"
+    rm -f ${PREFIX}distcoast.nc ${PREFIX}empc.nc
+    ln -s -v ${INPUTDIR}/${PREFIX}distcoast_${CONFIG}.nc ${PREFIX}distcoast.nc
+    ln -s -v ${INPUTDIR}/${PREFIX}empc_${CONFIG}.nc ${PREFIX}empc.nc
   fi
-  
+ 
   ################################
   ##-- Initial state or Restart
   
-  rm -f ${PREFIX}restart.nc ${PREFIX}restart_ice.nc
+  rm -f ${PREFIX}restart.nc ${PREFIX}restart_ice.nc ${PREFIX}restart_icb.nc
   rm -f ${PREFIX}istate_TS_y????m??.nc ${PREFIX}istate_sea_ice_y????m??.nc ${PREFIX}istate_TS.nc ${PREFIX}istate_sea_ice.nc
   RSTN=`get_value_in_namelist 'ln_rstart' '&namrun' ${PREFIX}namelist_cfg`
-  IS_ICB=`get_value_in_namelist 'ln_icebergs' '&namberg' ${PREFIX}namelist_cfg`
   NIT_RST=${NITENDM1}
   if [ $RSTN == ".true." ]; then
     if [ $NIT_RST -eq 0 ]; then
@@ -760,30 +771,39 @@ if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
       LAST_RESTART_NIT_DOM=`cat ${iZOOM}_restart_nit.txt`
     fi
 
-    ## ocean and sea-ice restart
+    ## ocean, sea-ice and iceberg restart
     FILEBASE_OCE=`ls -1 ${PREFIX}${CONFIG}-${CASE}_[0-9]???????_restart_0000.nc | sed -e "s/_0000.nc//g"`
     FILEBASE_ICE=`ls -1 ${PREFIX}${CONFIG}-${CASE}_[0-9]???????_restart_ice_0000.nc | sed -e "s/_0000.nc//g"`
-    for STUF in $FILEBASE_OCE $FILEBASE_ICE; do
+    IS_ICB=`get_value_in_namelist 'ln_icebergs' '&namberg' ${PREFIX}namelist_cfg`
+    if [ $IS_ICB == ".true." ]; then
+      FILEBASE_ICB=`ls -1 ${PREFIX}${CONFIG}-${CASE}_[0-9]???????_restart_icb_0000.nc | sed -e "s/_0000.nc//g"`
+    else
+      FILEBASE_ICB=''
+    fi
+    for STUF in $FILEBASE_OCE $FILEBASE_ICE $FILEBASE_ICB; do
       NF=`ls -1 ${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
       rebuild_nemo -m -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
       rm -f ${STUF}_[0-9][0-9][0-9][0-9].nc
     done
     mv ${FILEBASE_OCE}.nc ${PREFIX}restart_${LAST_RESTART_NIT_DOM}.nc
     mv ${FILEBASE_ICE}.nc ${PREFIX}restart_ice_${LAST_RESTART_NIT_DOM}.nc
-  
-    ## Create an archive for the icb files
-    IS_ICB=`get_value_in_namelist 'ln_icebergs' '&namberg' ${PREFIX}namelist_cfg`
     if [ $IS_ICB == ".true." ]; then
-      FILEBASE_ICB="${PREFIX}${CONFIG}-${CASE}_${LAST_RESTART_NIT_DOM}_restart_icb.tar"
-      tar -cf $FILEBASE_ICB  ${PREFIX}${CONFIG}-${CASE}_${LAST_RESTART_NIT_DOM}_restart_icb*.nc
-      if [ ! -f $FILEBASE_ICB ]; then
-         echo "Error when creating $FILEBASE_ICB" && exit
-      else
-         echo "$FILEBASE_ICB ok, deleting individual nectdf files"
-         rm -f ${PREFIX}${CONFIG}-${CASE}_${LAST_RESTART_NIT_DOM}_restart_icb*.nc
-         mv $FILEBASE_ICB ${PREFIX}restart_icb_${LAST_RESTART_NIT_DOM}.tar
-      fi
-    fi
+      mv ${FILEBASE_ICB}.nc ${PREFIX}restart_icb_${LAST_RESTART_NIT_DOM}.nc
+    fi  
+
+    ### Create an archive for the icb files
+    #IS_ICB=`get_value_in_namelist 'ln_icebergs' '&namberg' ${PREFIX}namelist_cfg`
+    #if [ $IS_ICB == ".true." ]; then
+    #  FILEBASE_ICB="${PREFIX}${CONFIG}-${CASE}_${LAST_RESTART_NIT_DOM}_restart_icb.tar"
+    #  tar -cf $FILEBASE_ICB  ${PREFIX}${CONFIG}-${CASE}_${LAST_RESTART_NIT_DOM}_restart_icb*.nc
+    #  if [ ! -f $FILEBASE_ICB ]; then
+    #     echo "Error when creating $FILEBASE_ICB" && exit
+    #  else
+    #     echo "$FILEBASE_ICB ok, deleting individual nectdf files"
+    #     rm -f ${PREFIX}${CONFIG}-${CASE}_${LAST_RESTART_NIT_DOM}_restart_icb*.nc
+    #     mv $FILEBASE_ICB ${PREFIX}restart_icb_${LAST_RESTART_NIT_DOM}.tar
+    #  fi
+    #fi
 
   done # iZOOM
 

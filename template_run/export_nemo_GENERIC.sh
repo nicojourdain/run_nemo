@@ -166,12 +166,12 @@ for iRST in $(seq 2 $NRST); do ## NB: the last restart file is kept for the next
 done
 
 ##-- icebergs :
-NRST=`ls -1 ${WORKDIR}/restart_icb_[0-9]???????.tar | wc -l`
+NRST=`ls -1 ${WORKDIR}/restart_icb_[0-9]???????.nc | wc -l`
 for iRST in $(seq 2 $NRST); do ## NB: the last restart file is kept for the next run
-  DTMP_RST=`ls -1 restart_icb_[0-9]???????.tar | tail -${iRST} | head -1`
+  DTMP_RST=`ls -1 restart_icb_[0-9]???????.nc | tail -${iRST} | head -1`
   echo ${DTMP_RST}
   NIT_RST=`basename ${DTMP_RST} | cut -d '_' -f3 | cut -d '.' -f1`
-  mv restart_icb_${NIT_RST}.tar ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/.
+  mv restart_icb_${NIT_RST}.nc ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/.
 done
 
 ##-- Repeat for child domains :
