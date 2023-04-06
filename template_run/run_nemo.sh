@@ -675,7 +675,7 @@ for STUF in mesh_mask bdy_mesh output.abort output.abort_ice output.init output.
     fi
     if [ -f ${PREFIX}${STUF}_0000.nc ]; then
       NF=`ls -1 ${PREFIX}${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
-      rebuild_nemo -m -d 1 -x 200 -y 200 -z 1 -t 1 ${PREFIX}$STUF $NF
+      ./rebuild_nemo -m -d 1 -x 200 -y 200 -z 1 -t 1 ${PREFIX}$STUF $NF
       rm -f ${PREFIX}${STUF}_[0-9][0-9][0-9][0-9].nc
     fi
   done
@@ -774,15 +774,15 @@ if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
     ## ocean, sea-ice and iceberg restart
     FILEBASE_OCE=`ls -1 ${PREFIX}${CONFIG}-${CASE}_[0-9]???????_restart_0000.nc | sed -e "s/_0000.nc//g"`
     FILEBASE_ICE=`ls -1 ${PREFIX}${CONFIG}-${CASE}_[0-9]???????_restart_ice_0000.nc | sed -e "s/_0000.nc//g"`
-    IS_ICB=`get_value_in_namelist 'ln_icebergs' '&namberg' ${PREFIX}namelist_cfg`
+    IS_ICB=`get_value_in_namelist 'ln_icebergs' '&namberg' "OUTPUT_${NRUN}/${PREFIX}namelist.${NRUN}"`
     if [ $IS_ICB == ".true." ]; then
       FILEBASE_ICB=`ls -1 ${PREFIX}${CONFIG}-${CASE}_[0-9]???????_restart_icb_0000.nc | sed -e "s/_0000.nc//g"`
     else
       FILEBASE_ICB=''
     fi
-    for STUF in $FILEBASE_OCE $FILEBASE_ICE $FILEBASE_ICB; do
+    for STUF in ${FILEBASE_OCE} ${FILEBASE_ICE} ${FILEBASE_ICB}; do
       NF=`ls -1 ${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
-      rebuild_nemo -m -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
+      ./rebuild_nemo -m -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
       rm -f ${STUF}_[0-9][0-9][0-9][0-9].nc
     done
     mv ${FILEBASE_OCE}.nc ${PREFIX}restart_${LAST_RESTART_NIT_DOM}.nc
