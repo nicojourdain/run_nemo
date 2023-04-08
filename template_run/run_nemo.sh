@@ -571,7 +571,7 @@ for iZOOM in $(seq 0 ${NZOOM}); do
   ################################
   ##-- Initial state or Restart
   
-  rm -f ${PREFIX}restart.nc ${PREFIX}restart_ice.nc ${PREFIX}restart_icb.nc
+  rm -f ${PREFIX}restart.nc ${PREFIX}restart_ice.nc ${PREFIX}restart_icb_[0-9][0-9][0-9][0-9].nc
   rm -f ${PREFIX}istate_TS_y????m??.nc ${PREFIX}istate_sea_ice_y????m??.nc ${PREFIX}istate_TS.nc ${PREFIX}istate_sea_ice.nc
   RSTN=`get_value_in_namelist 'ln_rstart' '&namrun' ${PREFIX}namelist_cfg`
   NIT_RST=${NITENDM1}
@@ -580,33 +580,30 @@ for iZOOM in $(seq 0 ${NZOOM}); do
       ln -s -v ${INPUTDIR}/${PREFIX}${CONFPAR}_restart_00000000.nc ${PREFIX}restart.nc
       ln -s -v ${INPUTDIR}/${PREFIX}${CONFPAR}_restart_ice_00000000.nc ${PREFIX}restart_ice.nc
       if [ $IS_ICB == ".true." ]; then
-        ln -s -v ${INPUTDIR}/${PREFIX}${CONFPAR}_restart_icb_00000000.nc ${PREFIX}restart_icb.nc
+        tar xvf ${INPUTDIR}/${PREFIX}${CONFPAR}_restart_icb_00000000.tar
+        for rstfile in ${PREFIX}${CONFPAR}_restart_icb_00000000_[0-9]*nc; do
+           rstfile2=`echo $rstfile |sed -e "s/${PREFIX}${CONFPAR}_restart_icb_00000000/${PREFIX}restart_icb/g"`
+           echo "-${rstfile}-   -${rstfile2}-"
+           mv $rstfile $rstfile2
+        done
       fi
     else
       if [ ! -f ${PREFIX}restart_${NIT_RST}.nc ]; then
-        echo "Copy ocean restart file from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
+        echo "Copying ocean restart file from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
         cp -p ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${PREFIX}restart_${NIT_RST}.nc .
       fi
       ln -s -v ${PREFIX}restart_${NIT_RST}.nc   ${PREFIX}restart.nc
       if [ ! -f ${PREFIX}restart_ice_${NIT_RST}.nc ]; then
-        echo "Copy sea ice restart file from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
+        echo "Copying sea ice restart file from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
         cp -p ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${PREFIX}restart_ice_${NIT_RST}.nc .
       fi
       ln -s -v ${PREFIX}restart_ice_${NIT_RST}.nc   ${PREFIX}restart_ice.nc
       if [ $IS_ICB == ".true." ]; then
-        if [ ! -f ${PREFIX}restart_icb_${NIT_RST}.nc ]; then
-          echo "Copy iceberg restart file from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
-          if [ -f ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${PREFIX}restart_icb_${NIT_RST}.nc ]; then
-            cp -p ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${PREFIX}restart_icb_${NIT_RST}.nc .
-            ln -s -v ${PREFIX}restart_icb_${NIT_RST}.nc   ${PREFIX}restart_icb.nc
-          elif [ -f ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${PREFIX}restart_icb_${NIT_RST}.tar ]; then
-            cp -p ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${PREFIX}restart_icb_${NIT_RST}.tar .
-            tar xvf ${PREFIX}restart_icb_${NIT_RST}.tar
-            for file in `ls -1 ${PREFIX}${CONFIG}-${CASE}_${NIT_RST}_restart_icb_*.nc` ; do
-              f2=`ls -1 $file | sed -e "s/${CONFIG}-${CASE}_${NIT_RST}_//g"`
-              mv $file $f2
-            done
-          fi
+        if [ ! -f ${PREFIX}restart_icb_${NIT_RST}.tar ]; then
+          echo "De-taring iceberg restart files from ${STOCKDIR}/restart/nemo_${CONFIG}-${CASE}"
+          tar xvf ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/${PREFIX}restart_icb_${NIT_RST}.tar
+        else
+          tar xvf ${PREFIX}restart_icb_${NIT_RST}.tar
         fi
       fi
     fi
@@ -730,6 +727,16 @@ fi
 
 if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
 
+  for iZOOM in $(seq 0 ${NZOOM}); do
+    if [ $iZOOM -eq 0 ]; then
+      PREFIX=''
+    else
+      PREFIX="${iZOOM}_"
+    fi
+    rm -f ${PREFIX}ocean.output_???? ${PREFIX}trajectory_icebergs_*_????.nc
+  done
+  rm -f xios_*_*.err xios_*_*.out
+
   if [ $MACHINE == 'occigen' ]; then
     sbatch ./export_nemo_${NRUN}.sh
   elif [ $MACHINE == 'irene' ]; then
@@ -774,36 +781,31 @@ if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
     ## ocean, sea-ice and iceberg restart
     FILEBASE_OCE=`ls -1 ${PREFIX}${CONFIG}-${CASE}_[0-9]???????_restart_0000.nc | sed -e "s/_0000.nc//g"`
     FILEBASE_ICE=`ls -1 ${PREFIX}${CONFIG}-${CASE}_[0-9]???????_restart_ice_0000.nc | sed -e "s/_0000.nc//g"`
-    IS_ICB=`get_value_in_namelist 'ln_icebergs' '&namberg' "OUTPUT_${NRUN}/${PREFIX}namelist.${NRUN}"`
-    if [ $IS_ICB == ".true." ]; then
-      FILEBASE_ICB=`ls -1 ${PREFIX}${CONFIG}-${CASE}_[0-9]???????_restart_icb_0000.nc | sed -e "s/_0000.nc//g"`
-    else
-      FILEBASE_ICB=''
-    fi
-    for STUF in ${FILEBASE_OCE} ${FILEBASE_ICE} ${FILEBASE_ICB}; do
+    for STUF in ${FILEBASE_OCE} ${FILEBASE_ICE}; do
       NF=`ls -1 ${STUF}_[0-9][0-9][0-9][0-9].nc |wc -l`
       ./rebuild_nemo -m -d 1 -x 200 -y 200 -z 1 -t 1 $STUF $NF
       rm -f ${STUF}_[0-9][0-9][0-9][0-9].nc
     done
     mv ${FILEBASE_OCE}.nc ${PREFIX}restart_${LAST_RESTART_NIT_DOM}.nc
     mv ${FILEBASE_ICE}.nc ${PREFIX}restart_ice_${LAST_RESTART_NIT_DOM}.nc
+ 
+    ## Create an archive for the icb restart files
+    IS_ICB=`get_value_in_namelist 'ln_icebergs' '&namberg' 'namelist_nemo-oce_GENERIC'`
     if [ $IS_ICB == ".true." ]; then
-      mv ${FILEBASE_ICB}.nc ${PREFIX}restart_icb_${LAST_RESTART_NIT_DOM}.nc
-    fi  
-
-    ### Create an archive for the icb files
-    #IS_ICB=`get_value_in_namelist 'ln_icebergs' '&namberg' ${PREFIX}namelist_cfg`
-    #if [ $IS_ICB == ".true." ]; then
-    #  FILEBASE_ICB="${PREFIX}${CONFIG}-${CASE}_${LAST_RESTART_NIT_DOM}_restart_icb.tar"
-    #  tar -cf $FILEBASE_ICB  ${PREFIX}${CONFIG}-${CASE}_${LAST_RESTART_NIT_DOM}_restart_icb*.nc
-    #  if [ ! -f $FILEBASE_ICB ]; then
-    #     echo "Error when creating $FILEBASE_ICB" && exit
-    #  else
-    #     echo "$FILEBASE_ICB ok, deleting individual nectdf files"
-    #     rm -f ${PREFIX}${CONFIG}-${CASE}_${LAST_RESTART_NIT_DOM}_restart_icb*.nc
-    #     mv $FILEBASE_ICB ${PREFIX}restart_icb_${LAST_RESTART_NIT_DOM}.tar
-    #  fi
-    #fi
+      for rstfile in ${PREFIX}${CONFIG}-${CASE}_${LAST_RESTART_NIT_DOM}_restart_icb_*.nc; do
+        rstfile2=`echo $rstfile |sed -e "s/${PREFIX}${CONFIG}-${CASE}_${LAST_RESTART_NIT_DOM}_//g"`
+        mv $rstfile $rstfile2
+      done
+      TARFILE_ICB="${PREFIX}${CONFIG}-${CASE}_${LAST_RESTART_NIT_DOM}_restart_icb.tar"
+      tar -cf $TARFILE_ICB  restart_icb_[0-9][0-9][0-9][0-9].nc
+      if [ ! -f $TARFILE_ICB ]; then
+         echo "Error when creating $TARFILE_ICB" && exit
+      else
+         echo "$TARFILE_ICB ok, deleting individual nectdf files"
+         rm -f restart_icb_[0-9][0-9][0-9][0-9].nc
+         mv $TARFILE_ICB ${PREFIX}restart_icb_${LAST_RESTART_NIT_DOM}.tar
+      fi
+    fi
 
   done # iZOOM
 
@@ -827,7 +829,8 @@ if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
   if [ $YEARm2 -lt 1000 ]; then
     YEARm2="0$YEARm2"
   fi
-  if [ $IS_BLK_CORE == ".true." ]; then
+  IS_BLK=`get_value_in_namelist 'ln_blk' '&namsbc' 'namelist_nemo-oce_GENERIC'`
+  if [ $IS_BLK == ".true." ]; then
     for NAMAT in sn_wndi sn_wndj sn_qsr sn_qlw sn_tair sn_humi sn_prec sn_snow sn_slp; do
       ATM_FILE=`grep $NAMAT namelist_cfg | cut -d "'" -f2 | head -1`
       IS_CLIM=`grep $NAMAT namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
