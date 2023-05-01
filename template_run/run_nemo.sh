@@ -491,6 +491,7 @@ for iZOOM in $(seq 0 ${NZOOM}); do
     
     for AN in $YEARm1 $YEAR $YEARp1; do
       for BDYNAM in bdyT_tra bdyU_u2d bdyU_u3d bdyV_u2d bdyV_u3d bdyT_ice bdyT_ssh; do
+        # bdyU_u2d and bdyV_u2d not used if ln_full_vel = .true.
         rm -f ${PREFIX}${BDYNAM}_y${AN}.nc
         if [ -f ${BDYDIR}/${PREFIX}${BDYNAM}_y${AN}_${CONFPAR}.nc ]; then
           ln -s -v ${BDYDIR}/${PREFIX}${BDYNAM}_y${AN}_${CONFPAR}.nc ${PREFIX}${BDYNAM}_y${AN}.nc
@@ -539,8 +540,8 @@ for iZOOM in $(seq 0 ${NZOOM}); do
     done
   fi
 
-  ##########################
-  ##-- SSS restoring if any :
+  #####################################################################
+  ##-- SSS restoring or prescribed corrective E-P flux (DRAKKAR only) :
   
   SSSREL=`get_value_in_namelist 'nn_sssr' '&namsbc_ssr' ${PREFIX}namelist_cfg`
  
@@ -677,7 +678,7 @@ for STUF in mesh_mask bdy_mesh output.abort output.abort_ice output.init output.
     fi
   done
 done
-rm -f nam_rebuild_[0-9][0-9][0-9][0-9][0-9]
+rm -f nam_rebuild_[0-9][0-9][0-9]*
 
 ##-- export output files:
 
@@ -701,6 +702,7 @@ for iZOOM in $(seq 0 ${NZOOM}); do
   else
     PREFIX="${iZOOM}_"
   fi
+  tar cvf OUTPUT_${NRUN}/${PREFIX}trajectory_icebergs.${NRUN}.tar ${PREFIX}trajectory_icebergs_*_????.nc
   mv -f ${PREFIX}${CONFIG}-${CASE}_[1-5][dmy]_*nc OUTPUT_${NRUN}/.
   mv -f ${PREFIX}namelist_ref                     OUTPUT_${NRUN}/${PREFIX}namelist.${NRUN}
   mv -f ${PREFIX}namelist_ice_ref                 OUTPUT_${NRUN}/${PREFIX}namelist_ice.${NRUN}
@@ -832,8 +834,8 @@ if [ ${NTEST_O} -gt 0 ] && [ ${NTEST_R} -gt 0 ] && [ $NBNAN -eq 0 ]; then
   IS_BLK=`get_value_in_namelist 'ln_blk' '&namsbc' 'namelist_nemo-oce_GENERIC'`
   if [ $IS_BLK == ".true." ]; then
     for NAMAT in sn_wndi sn_wndj sn_qsr sn_qlw sn_tair sn_humi sn_prec sn_snow sn_slp; do
-      ATM_FILE=`grep $NAMAT namelist_cfg | cut -d "'" -f2 | head -1`
-      IS_CLIM=`grep $NAMAT namelist_cfg | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
+      ATM_FILE=`grep $NAMAT namelist_nemo-oce_GENERIC | cut -d "'" -f2 | head -1`
+      IS_CLIM=`grep $NAMAT namelist_nemo-oce_GENERIC | cut -d ',' -f5 | sed -e "s/ //g" | head -1`
       if [ $IS_CLIM == ".false." ]; then
         rm -f ${ATM_FILE}_y${YEARm2}.nc
         for iZOOM in $(seq 1 $NZOOM); do
