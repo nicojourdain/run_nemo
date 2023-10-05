@@ -173,6 +173,13 @@ for iRST in $(seq 2 $NRST); do ## NB: the last restart file is kept for the next
   NIT_RST=`basename ${DTMP_RST} | cut -d '_' -f3 | cut -d '.' -f1`
   mv restart_icb_${NIT_RST}.nc ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/.
 done
+NRST=`ls -1 ${WORKDIR}/restart_icb_[0-9]???????.tar | wc -l`
+for iRST in $(seq 2 $NRST); do ## NB: the last restart file is kept for the next run
+  DTMP_RST=`ls -1 restart_icb_[0-9]???????.tar | tail -${iRST} | head -1`
+  echo ${DTMP_RST}
+  NIT_RST=`basename ${DTMP_RST} | cut -d '_' -f3 | cut -d '.' -f1`
+  mv restart_icb_${NIT_RST}.tar ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/.
+done
 
 ##-- Repeat for child domains :
 for iZOOM in $(seq 1 $NZOOM); do
@@ -187,6 +194,12 @@ for iZOOM in $(seq 1 $NZOOM); do
     DTMP_RST=`ls -1 ${iZOOM}_restart_ice_????????.nc | tail -${iRST} | head -1`
     NIT_RST=`basename ${DTMP_RST} | cut -d '_' -f4 | cut -d '.' -f1`
     mv ${iZOOM}_restart_ice_${NIT_RST}.nc ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/.
+  done
+  NRST=`ls -1 ${WORKDIR}/${iZOOM}_restart_icb_[0-9]???????.nc | wc -l`
+  for iRST in $(seq 2 $NRST); do ## NB: the last restart file is kept for the next run
+    DTMP_RST=`ls -1 ${iZOOM}_restart_icb_[0-9]???????.nc | tail -${iRST} | head -1`
+    NIT_RST=`basename ${DTMP_RST} | cut -d '_' -f3 | cut -d '.' -f1`
+    mv ${iZOOM}_restart_icb_${NIT_RST}.nc ${STOCKDIR}/restart/nemo_${CONFIG}_${CASE}/.
   done
   NRST=`ls -1 ${WORKDIR}/${iZOOM}_restart_icb_[0-9]???????.tar | wc -l`
   for iRST in $(seq 2 $NRST); do ## NB: the last restart file is kept for the next run
